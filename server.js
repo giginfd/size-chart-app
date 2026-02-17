@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+const multer = require("multer");
 
 const SHOP_DOMAIN = process.env.SHOP_DOMAIN;
 const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
@@ -33,6 +34,131 @@ async function shopifyGraphQL(query, variables) {
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+function parseSkuFromFilename(filename) {
+  const m = String(filename || "").match(/^(\d+)/);
+  return m ? m[1] : null;
+}
+
+function parseSuffixFromFilename(filename) {
+  const m = String(filename || "").match(/_(\w+)\.(jpe?g)$/i);
+  return m ? m[1] : "";
+}
+
+async function findProductIdBySkuPrefix(sku) {
+  const q = `
+    query FindBySku($query: String!) {
+      productVariants(first: 10, query: $query) {
+        edges {
+          node {
+            sku
+            product { id title handle status }
+          }
+        }
+      }
+    }
+  `;
+
+  const attempts = [
+    `sku:${sku}`,
+    `sku:_${sku}`,
+    `sku:${sku}*`,
+    `sku:*${sku}*`
+  ];
+
+  for (const attempt of attempts) {
+    const data = await shopifyGraphQL(q, { query: attempt });
+    const edges = data.productVariants.edges || [];
+    if (edges.length) {
+      const p = edges[0].node.product;
+      return {
+        productId: p.id,
+        productTitle: p.title,
+        productHandle: p.handle,
+        productStatus: p.status,
+        queryUsed: attempt
+      };
+    }
+  }
+
+  return null;
+}
+
+async function stagedUploadJpeg(filename) {
+  const mutation = `
+    mutation Staged($input: [StagedUploadInput!]!) {
+      stagedUploadsCreate(input: $input) {
+        stagedTargets {
+          url
+          resourceUrl
+          parameters { name value }
+        }
+        userErrors { field message }
+      }
+    }
+  `;
+
+  const data = await shopifyGraphQL(mutation, {
+    input: [{
+      resource: "IMAGE",
+      filename,
+      mimeType: "image/jpeg",
+      httpMethod: "POST"
+    }]
+  });
+
+  const r = data.stagedUploadsCreate;
+  if (r.userErrors?.length) {
+    throw new Error(`stagedUploadsCreate errors: ${JSON.stringify(r.userErrors)}`);
+  }
+
+  return r.stagedTargets[0];
+}
+
+async function uploadBufferToStagedTarget(stagedTarget, filename, buffer) {
+  const form = new FormData();
+
+  for (const p of stagedTarget.parameters) {
+    form.append(p.name, p.value);
+  }
+
+  const blob = new Blob([buffer], { type: "image/jpeg" });
+  form.append("file", blob, filename);
+
+  const res = await fetch(stagedTarget.url, {
+    method: "POST",
+    body: form
+  });
+
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Staged upload failed HTTP ${res.status}: ${t.slice(0, 400)}`);
+  }
+}
+
+async function createProductMedia(productId, resourceUrl, altText) {
+  const mutation = `
+    mutation Media($productId: ID!, $media: [CreateMediaInput!]!) {
+      productCreateMedia(productId: $productId, media: $media) {
+        media { ... on MediaImage { id } }
+        mediaUserErrors { field message code }
+      }
+    }
+  `;
+
+  const data = await shopifyGraphQL(mutation, {
+    productId,
+    media: [{
+      mediaContentType: "IMAGE",
+      originalSource: resourceUrl,
+      alt: altText
+    }]
+  });
+
+  const errs = data.productCreateMedia.mediaUserErrors || [];
+  if (errs.length) {
+    throw new Error(`productCreateMedia errors: ${JSON.stringify(errs)}`);
+  }
 }
 
 function normalizeSkuTag(input) {
@@ -150,6 +276,10 @@ async function setProductMetafieldsInBatches(productIds, metaobjectGid) {
 }
 
 const app = express();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 } // 15MB per image
+});
 const APP_PASSWORD = process.env.APP_PASSWORD || "";
 
 function basicAuth(req, res, next) {
@@ -259,6 +389,62 @@ app.post("/api/save", async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
+  }
+});
+app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
+  try {
+    const files = req.files || [];
+    if (!files.length) {
+      return res.status(400).json({ ok: false, error: "No files uploaded" });
+    }
+
+    const results = [];
+
+    for (const f of files) {
+      const name = f.originalname || "image.jpg";
+
+      if (!/\.jpe?g$/i.test(name)) {
+        results.push({ filename: name, status: "SKIP_NOT_JPEG" });
+        continue;
+      }
+
+      const sku = parseSkuFromFilename(name);
+      const suffix = parseSuffixFromFilename(name);
+
+      if (!sku) {
+        results.push({ filename: name, status: "SKIP_NO_SKU" });
+        continue;
+      }
+
+      const found = await findProductIdBySkuPrefix(sku);
+
+      if (!found) {
+        results.push({ filename: name, sku, status: "SKIP_NO_PRODUCT" });
+        continue;
+      }
+
+      const alt = `SKU ${sku}${suffix ? " " + suffix : ""}`;
+
+      const staged = await stagedUploadJpeg(name);
+      await uploadBufferToStagedTarget(staged, name, f.buffer);
+      await createProductMedia(found.productId, staged.resourceUrl, alt);
+
+      results.push({
+        filename: name,
+        sku,
+        status: "IMPORTED",
+        productHandle: found.productHandle,
+        productStatus: found.productStatus,
+        matchedBy: found.queryUsed
+      });
+
+      await sleep(250);
+    }
+
+    res.json({ ok: true, count: results.length, results });
+
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message || e) });
   }
 });
 
