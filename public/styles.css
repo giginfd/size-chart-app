@@ -145,3 +145,138 @@ tbody th{
 .skuRow input:focus{
   outline:none;
 }
+/* ===== Image Import page polish ===== */
+.nfd-card{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 10px 26px rgba(0,0,0,.06);
+}
+
+.nfd-card-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.nfd-eyebrow{
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:.7;
+  margin-bottom:6px;
+}
+
+.nfd-title{
+  margin:0;
+  font-size:22px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.nfd-subtitle{
+  margin-top:8px;
+  font-size:13px;
+  opacity:.75;
+  max-width:60ch;
+  line-height:1.4;
+}
+
+.nfd-link{
+  font-size:13px;
+  text-decoration:none;
+  border-bottom:1px dotted rgba(0,0,0,.35);
+  color:inherit;
+  padding-bottom:2px;
+  white-space:nowrap;
+}
+
+.nfd-dropzone{
+  border:1px dashed rgba(0,0,0,.25);
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.00));
+  padding:28px;
+  text-align:center;
+}
+
+.nfd-dropzone-title{
+  font-weight:700;
+  font-size:18px;
+  margin-bottom:6px;
+}
+
+.nfd-dropzone-sub{
+  font-size:13px;
+  opacity:.7;
+  margin-bottom:18px;
+}
+
+.nfd-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+}
+
+.nfd-btn{
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.18);
+  padding:10px 14px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:13px;
+}
+
+.nfd-btn-ghost{
+  background:#fff;
+}
+
+.nfd-btn-solid{
+  background:#1d1b1b;
+  color:#fff;
+  border-color:#1d1b1b;
+}
+
+.nfd-btn-solid:hover{
+  opacity:.92;
+}
+
+.nfd-status{
+  font-size:13px;
+  opacity:.8;
+  min-width:200px;
+}
+
+.nfd-hint{
+  margin-top:14px;
+  font-size:12px;
+  opacity:.7;
+}
+
+.nfd-results{
+  margin-top:18px;
+  border-top:1px solid rgba(0,0,0,.08);
+  padding-top:16px;
+}
+
+.nfd-results-title{
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:13px;
+}
+
+.nfd-log{
+  margin-top:10px;
+  padding:14px;
+  border-radius:10px;
+  background:#0f1115;
+  color:#e6e6e6;
+  font-size:12px;
+  min-height:120px;
+  overflow:auto;
+}

@@ -8,23 +8,51 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Image Import</h1>
+    <div class="nfd-card">
+      <div class="nfd-card-header">
+        <div>
+          <div class="nfd-eyebrow">Naked & Famous Denim</div>
+          <h1 class="nfd-title">Image Import</h1>
+          <div class="nfd-subtitle">
+            Upload JPEGs named like <strong>320139266_A.jpg</strong>.
+            We match products by variant SKU starting with that number.
+          </div>
+        </div>
+        <a class="nfd-link" href="/">Back to Size Charts</a>
+      </div>
 
-    <div class="hint">
-      Upload JPEGs named like 320139266_A.jpg.
-      We will match the product by variant SKU starting with that number.
+      <div class="nfd-dropzone">
+        <div class="nfd-dropzone-inner">
+          <div class="nfd-dropzone-title">Drop files here</div>
+          <div class="nfd-dropzone-sub">or choose JPEGs from your computer</div>
+
+          <div class="nfd-actions">
+            <label class="nfd-btn nfd-btn-ghost">
+              Choose Files
+              <input id="fileInput" type="file" accept=".jpg,.jpeg" multiple hidden />
+            </label>
+
+            <button id="uploadBtn" type="button" class="nfd-btn nfd-btn-solid">
+              Import Images
+            </button>
+
+            <div id="status" class="nfd-status"></div>
+          </div>
+
+          <div class="nfd-hint">
+            Tip: keep the SKU at the start of the filename.
+          </div>
+        </div>
+      </div>
+
+      <div class="nfd-results">
+        <div class="nfd-results-head">
+          <div class="nfd-results-title">Results</div>
+          <div class="nfd-results-note">One line per file.</div>
+        </div>
+        <pre id="log" class="nfd-log"></pre>
+      </div>
     </div>
-
-    <div class="row">
-      <input id="fileInput" type="file" accept=".jpg,.jpeg" multiple />
-    </div>
-
-    <div class="actions">
-      <button id="uploadBtn" type="button">Import Images</button>
-      <div id="status"></div>
-    </div>
-
-    <pre id="log" style="margin-top:14px; white-space:pre-wrap;"></pre>
   </div>
 
   <script src="/image-import.js"></script>
