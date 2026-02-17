@@ -3,6 +3,23 @@ const uploadBtn = document.getElementById("uploadBtn");
 const statusEl = document.getElementById("status");
 const logEl = document.getElementById("log");
 
+function updateSelectedFiles() {
+  const files = Array.from(fileInput.files || []);
+
+  if (!files.length) {
+    statusEl.textContent = "";
+    return;
+  }
+
+  statusEl.textContent = `${files.length} file(s) selected`;
+
+  logEl.textContent = files
+    .map(f => `Selected: ${f.name}`)
+    .join("\n");
+}
+
+fileInput.addEventListener("change", updateSelectedFiles);
+
 uploadBtn.addEventListener("click", async () => {
   const files = Array.from(fileInput.files || []);
 
