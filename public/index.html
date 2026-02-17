@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Size Chart Editor</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <h1>Size Chart Editor</h1>
+
+    <div class="row">
+      <label>SKU Tag</label>
+      <div class="skuRow">
+        <span class="skuPrefix">__</span>
+        <input id="skuTag" placeholder="101110006" />
+      </div>
+    </div>
+
+    <div class="row">
+      <label>Template</label>
+      <select id="template"></select>
+    </div>
+
+    <div class="row">
+      <label>Chart name</label>
+      <input id="chartName" placeholder="Optional (defaults to SKU or template)" />
+    </div>
+
+    <div class="row split">
+      <div>
+        <label>Sizes</label>
+        <input id="sizes" placeholder="Leave blank for template sizes, or paste: 27,28,29,30" />
+        <div class="hint">Leave blank to use template sizes. Or paste any list.</div>
+      </div>
+      <div>
+        <label>Footer (optional)</label>
+        <input id="footer" placeholder="Optional" />
+      </div>
+    </div>
+
+    <div class="paste">
+      <label>Paste table (optional)</label>
+      <textarea id="paste" placeholder="Paste a full table block here (tabs or CSV). Click Parse to fill grid."></textarea>
+      <button id="parseBtn" type="button">Parse</button>
+    </div>
+
+    <div id="grid"></div>
+
+    <div class="actions">
+      <button id="saveBtn" type="button">Save to Shopify</button>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

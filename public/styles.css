@@ -1,0 +1,147 @@
+body{
+  font-family:Inter,system-ui,-apple-system,Arial,sans-serif;
+  margin:0;
+  background:#fafafa;
+  color:#111;
+}
+.wrap{
+  max-width:980px;
+  margin:26px auto;
+  padding:0 16px;
+}
+h1{
+  font-size:18px;
+  margin:0 0 16px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.row{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:10px 0;
+}
+.row.split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+label{
+  font-size:12px;
+  opacity:.75;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+input,select,textarea{
+  border:1px solid rgba(0,0,0,.18);
+  padding:10px 12px;
+  border-radius:6px;
+  background:#fff;
+}
+textarea{
+  min-height:110px;
+  resize:vertical;
+}
+.hint{
+  font-size:12px;
+  opacity:.7;
+}
+.paste{
+  margin:16px 0;
+}
+#parseBtn{
+  margin-top:8px;
+}
+button{
+  border:1px solid rgba(0,0,0,.18);
+  padding:10px 12px;
+  border-radius:6px;
+  background:#fff;
+  cursor:pointer;
+}
+button:hover{
+  border-color:rgba(0,0,0,.4);
+}
+.actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-top:16px;
+}
+#status{
+  font-size:13px;
+  opacity:.85;
+}
+.tableWrap{
+  overflow:auto;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:10px;
+  background:#fff;
+  margin-top:12px;
+}
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:720px;
+}
+th,td{
+  border:1px solid rgba(0,0,0,.08);
+  padding:10px;
+  text-align:center;
+  white-space:nowrap;
+}
+thead th{
+  background:#1d1b1b;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:12px;
+}
+tbody th{
+  text-align:left;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  font-weight:500;
+  background:#f2f2f2;
+}
+.cell{
+  width:90px;
+}
+.cell input{
+  width:100%;
+  border:0;
+  padding:0;
+  background:transparent;
+  text-align:center;
+}
+.cell input:focus{
+  outline:2px solid rgba(0,0,0,.25);
+  border-radius:4px;
+}
+/* SKU prefix styling */
+.skuRow{
+  display:flex;
+  align-items:center;
+  border:1px solid rgba(0,0,0,.18);
+  border-radius:6px;
+  background:#fff;
+  overflow:hidden;
+}
+
+.skuPrefix{
+  padding:10px 12px;
+  border-right:1px solid rgba(0,0,0,.12);
+  opacity:.7;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+.skuRow input{
+  border:0;
+  border-radius:0;
+  flex:1;
+}
+
+.skuRow input:focus{
+  outline:none;
+}
