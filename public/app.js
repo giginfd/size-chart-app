@@ -60,7 +60,23 @@ function pruneEmptySizeColumns(sizes, rows) {
 
   return { sizes: newSizes, rows: newRows };
 }
+/**
+ * Round any numeric value to the nearest 0.25.
+ * Keeps blanks as blanks, and non-numbers untouched.
+ */
+function roundToQuarter(value) {
+  const s = String(value ?? "").trim();
+  if (s === "") return "";
 
+  const n = Number(s);
+  if (!Number.isFinite(n)) return s;
+
+  const rounded = Math.round(n * 4) / 4;
+
+  // Format: remove trailing .00
+  const out = rounded.toFixed(2).replace(/\.00$/, "");
+  return out;
+}
 function renderGrid() {
   const sizes = current.sizes;
   const rows = current.rows;
@@ -83,12 +99,21 @@ function renderGrid() {
   $("grid").innerHTML = html;
 
   $("grid").querySelectorAll("input").forEach(inp => {
-    inp.addEventListener("input", (e) => {
-      const ri = Number(e.target.dataset.ri);
-      const ci = Number(e.target.dataset.ci);
-      current.rows[ri].values[ci] = e.target.value;
-    });
+  inp.addEventListener("input", (e) => {
+    const ri = Number(e.target.dataset.ri);
+    const ci = Number(e.target.dataset.ci);
+    current.rows[ri].values[ci] = e.target.value;
   });
+
+  inp.addEventListener("blur", (e) => {
+    const ri = Number(e.target.dataset.ri);
+    const ci = Number(e.target.dataset.ci);
+
+    const rounded = roundToQuarter(e.target.value);
+    e.target.value = rounded;
+    current.rows[ri].values[ci] = rounded;
+  });
+});
 }
 
 async function loadTemplates() {
