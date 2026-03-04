@@ -249,6 +249,12 @@ async function loadExistingChartIfAny(){
     $("status").textContent = json.error || "Could not load chart";
     return;
   }
+// Auto-fill SKU tag from the loaded chart (works for chartId + sku flows)
+if (json.skuTag) {
+  const coreFromChart = String(json.skuTag).replace(/^__+/, "").replace(/^_+/, "");
+  const skuInput = $("skuTag");
+  if (skuInput) skuInput.value = coreFromChart;
+}
 
   let columns = [];
   let rows = [];
