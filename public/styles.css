@@ -741,3 +741,75 @@ body input, body select, body textarea{
 @media (max-width: 720px){
   .nfd-footer-input{ max-width: 100%; }
 }
+
+
+/* =========================
+   Final UX tweaks
+   ========================= */
+
+/* Logo: make it readable */
+.nfd-logo{
+  height: 22px !important;
+  width: auto !important;
+}
+
+/* Make footer field smaller and push it to its own line */
+.nfd-footer-input{
+  max-width: 360px !important;
+}
+
+/* If your footer input is in the same row as Sizes, this forces it to drop */
+#footer.nfd-footer-input{
+  display:block;
+}
+
+/* Slightly tighten vertical rhythm */
+.row{ margin-bottom: 10px !important; }
+.tableWrap{ margin-top: 10px !important; }
+
+
+/* =========================
+   Fix: remove top bar / extra spacing
+   ========================= */
+
+/* Page background */
+html, body{ background:#f6f6f6 !important; }
+
+/* The card container should NOT create a "bar" */
+.wrap{
+  max-width: 1100px !important;
+  margin: 22px auto !important;
+  padding: 18px 18px 22px !important;
+  background: #fff !important;
+  border: 1px solid rgba(0,0,0,.10) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 34px rgba(0,0,0,.08) !important;
+
+  /* critical: prevent mystery strip */
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* remove any pseudo elements that could render as a bar */
+.wrap::before,
+.wrap::after{
+  content: none !important;
+  display: none !important;
+}
+
+/* also ensure no stray first child is creating a strip */
+.wrap > :first-child{
+  margin-top: 0 !important;
+}
+
+
+
+/* =========================
+   N&F logo size
+   ========================= */
+.nfd-logo img{
+  width:80px;
+  height:auto;
+  display:block;
+}
