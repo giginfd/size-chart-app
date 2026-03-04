@@ -521,8 +521,61 @@ app.get("/api/audit", async (req, res) => {
 // ===============================
 // LIST SIZE CHART METAOBJECTS
 // ===============================
+// ===============================
+// LIST SIZE CHART METAOBJECTS (+ optional usage counts)
+// ===============================
+let _usageCache = { ts: 0, map: null };
+const USAGE_CACHE_MS = 5 * 60 * 1000;
+
+async function getUsageMap() {
+  const now = Date.now();
+  if (_usageCache.map && (now - _usageCache.ts) < USAGE_CACHE_MS) return _usageCache.map;
+
+  const q = `
+    query ProductsWithCharts($cursor: String) {
+      products(first: 250, after: $cursor) {
+        edges {
+          cursor
+          node {
+            metafield(namespace: "custom", key: "size_chart") {
+              reference {
+                ... on Metaobject { id }
+              }
+            }
+          }
+        }
+        pageInfo { hasNextPage }
+      }
+    }
+  `;
+
+  let cursor = null;
+  let hasNext = true;
+  const map = {}; // metaobjectId -> count
+
+  while (hasNext) {
+    const data = await shopifyGraphQL(q, { cursor });
+    const edges = data.products.edges || [];
+
+    for (const e of edges) {
+      const ref = e.node.metafield?.reference;
+      if (ref?.id) {
+        map[ref.id] = (map[ref.id] || 0) + 1;
+      }
+      cursor = e.cursor;
+    }
+
+    hasNext = !!data.products.pageInfo.hasNextPage;
+    if (!edges.length) break;
+  }
+
+  _usageCache = { ts: now, map };
+  return map;
+}
+
 app.get("/api/charts", async (req, res) => {
   try {
+    const includeUsage = String(req.query.includeUsage || "") === "1";
     const cursor = req.query.cursor || null;
 
     const query = `
@@ -542,19 +595,25 @@ app.get("/api/charts", async (req, res) => {
       }
     `;
 
-    const data = await shopifyGraphQL(query, { cursor });
+    const usage = includeUsage ? await getUsageMap() : null;
 
+    const data = await shopifyGraphQL(query, { cursor });
     const edges = data.metaobjects.edges || [];
+
     const items = edges.map(e => {
       const m = e.node;
       const field = (k) => (m.fields || []).find(f => f.key === k)?.value || "";
+      const linkedCount = usage ? (usage[m.id] || 0) : null;
+
       return {
         id: m.id,
         handle: m.handle,
         updatedAt: m.updatedAt,
         skuTag: field("sku_tag"),
         chartName: field("chart_name"),
-        direction: field("direction")
+        direction: field("direction"),
+        linkedCount,
+        isOrphan: usage ? ((usage[m.id] || 0) === 0) : null
       };
     });
 
@@ -572,8 +631,42 @@ app.get("/api/charts", async (req, res) => {
 // ===============================
 // FETCH ONE CHART BY SKU TAG FIELD
 // ===============================
+
 app.get("/api/chart", async (req, res) => {
   try {
+
+    const chartId = String(req.query.id || "").trim();
+    if (chartId) {
+      const qById = `
+        query GetChartById($id: ID!) {
+          metaobject(id: $id) {
+            id
+            handle
+            type
+            fields { key value }
+          }
+        }
+      `;
+
+      const dataById = await shopifyGraphQL(qById, { id: chartId });
+      const m = dataById.metaobject;
+      if (!m) return res.json({ ok:false, error:"Chart not found" });
+
+      const field = (k) => (m.fields || []).find(f => f.key === k)?.value || "";
+
+      return res.json({
+        ok: true,
+        id: m.id,
+        handle: m.handle,
+        skuTag: field("sku_tag"),
+        chartName: field("chart_name"),
+        direction: field("direction") || "row",
+        columns_json: field("columns_json") || "[]",
+        rows_json: field("rows_json") || "[]",
+        footer: field("footer") || ""
+      });
+    }
+
     const skuTag = normalizeSkuTag(req.query.sku || req.query.handle || "");
     if (!skuTag) return res.status(400).json({ ok: false, error: "Missing sku" });
 
