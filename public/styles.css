@@ -344,3 +344,25 @@ table.audit-table tbody tr:hover td{
   font-size:12px;
   opacity:.75;
 }
+
+/* =========================
+   Audit UX: wider container + horizontal scroll
+   ========================= */
+.wrap.wrap--wide{
+  max-width: 1400px;
+}
+
+/* Make the audit card use full width */
+.wrap--wide .card{
+  width: 100%;
+}
+
+.audit-table-wrap{
+  width:100%;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.audit-col-linked{ width: 90px; text-align:right; }
+.audit-col-orphan{ width: 90px; text-align:center; font-weight:700; }
+.audit-col-orphan{ color: rgb(239,64,35); }

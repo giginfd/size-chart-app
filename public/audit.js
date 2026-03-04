@@ -10,26 +10,23 @@ function esc(s){
 
 function fmtDate(iso){
   if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString();
-  } catch(e){
-    return iso;
-  }
+  try { return new Date(iso).toLocaleString(); } catch(e){ return iso; }
 }
 
 function render(list){
   $("tbody").innerHTML = list.map(item => {
-const editUrl = `/index.html?sku=${encodeURIComponent(item.handle || item.skuTag || "")}`;
+    const editUrl = `/index.html?sku=${encodeURIComponent(item.handle || item.skuTag || "")}`;
+    const linked = (item.linkedCount == null) ? "" : String(item.linkedCount);
+    const orphan = (item.isOrphan === true) ? "YES" : "";
     return `
       <tr>
-        <td><code>${esc(item.skuTag || item.handle || "")}</code></td>
-        <td>${esc(item.chartName || "")}</td>
-        <td>${esc(item.direction || "")}</td>
-        <td>${esc(fmtDate(item.updatedAt))}</td>
-        <td style="text-align:right;">
-          <a class="nfd-link" href="${editUrl}">Edit</a>
-        </td>
+        <td class="audit-col-sku"><code>${esc(item.skuTag || item.handle || "")}</code></td>
+        <td class="audit-col-name">${esc(item.chartName || "")}</td>
+        <td class="audit-col-dir">${esc(item.direction || "")}</td>
+        <td class="audit-col-updated">${esc(fmtDate(item.updatedAt))}</td>
+        <td class="audit-col-linked">${esc(linked)}</td>
+        <td class="audit-col-orphan">${orphan}</td>
+        <td class="audit-col-action"><a class="nfd-link" href="${editUrl}">Edit</a></td>
       </tr>
     `;
   }).join("");
@@ -50,7 +47,8 @@ function applyFilter(){
   render(filtered);
 }
 
-async function fetchAllCharts(limit = 2000){
+async function fetchAllCharts(limit = 1200){
+  const seen = new Set();
   let all = [];
   let cursor = null;
   let hasNextPage = true;
@@ -61,18 +59,23 @@ async function fetchAllCharts(limit = 2000){
     $("status").textContent = `Loading… ${all.length} loaded (page ${page})`;
 
     const url = cursor
-      ? `/api/charts?cursor=${encodeURIComponent(cursor)}`
-      : `/api/charts`;
+      ? `/api/charts?includeUsage=1&cursor=${encodeURIComponent(cursor)}`
+      : `/api/charts?includeUsage=1`;
 
     const res = await fetch(url, { cache: "no-store" });
     const json = await res.json().catch(() => ({}));
 
-    if (!res.ok || !json.ok) {
-      throw new Error(json.error || "Error loading charts");
-    }
+    if (!res.ok || !json.ok) throw new Error(json.error || "Error loading charts");
 
     const items = Array.isArray(json.items) ? json.items : [];
-    all = all.concat(items);
+
+    for (const it of items) {
+      const key = it.id || `${it.handle}|${it.skuTag}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      all.push(it);
+      if (all.length >= limit) break;
+    }
 
     cursor = json.nextCursor || null;
     hasNextPage = !!json.hasNextPage && !!cursor;
@@ -80,7 +83,7 @@ async function fetchAllCharts(limit = 2000){
     if (!items.length) break;
   }
 
-  return all.slice(0, limit);
+  return all;
 }
 
 async function init(){
@@ -88,7 +91,7 @@ async function init(){
     $("status").textContent = "Loading…";
     $("tbody").innerHTML = "";
 
-    ALL = await fetchAllCharts(5000);
+    ALL = await fetchAllCharts(1200);
     render(ALL);
 
     $("searchBtn").addEventListener("click", applyFilter);
