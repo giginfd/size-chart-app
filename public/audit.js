@@ -91,8 +91,12 @@ async function init(){
     $("status").textContent = "Loading…";
     $("tbody").innerHTML = "";
 
-    ALL = await fetchAllCharts(1200);
-    render(ALL);
+ALL = await fetchAllCharts(1200);
+
+// Sort newest first
+ALL.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+
+render(ALL);
 
     $("searchBtn").addEventListener("click", applyFilter);
     $("clearBtn").addEventListener("click", () => { $("q").value = ""; render(ALL); });
