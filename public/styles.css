@@ -491,3 +491,23 @@ table.audit-table tbody tr:hover td{
   margin-left:6px;
   white-space:nowrap;
 }
+
+
+/* =========================
+   Layout fix: keep editor centered
+   ========================= */
+body{
+  max-width:1200px;
+  margin:0 auto;
+  padding:24px;
+  font-family:Inter,system-ui,-apple-system,Arial,sans-serif;
+}
+
+.nfd-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  margin: 8px 0 16px;
+}
