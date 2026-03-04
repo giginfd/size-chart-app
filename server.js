@@ -448,6 +448,186 @@ app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
   }
 });
 
+// ===============================
+// SIZE CHART AUDIT API (paginated)
+// ===============================
+app.get("/api/audit", async (req, res) => {
+  try {
+    const cursor = req.query.cursor || null;
+
+    const query = `
+      query Audit($cursor: String) {
+        products(first: 100, after: $cursor) {
+          edges {
+            cursor
+            node {
+              title
+              handle
+              tags
+              metafield(namespace: "custom", key: "size_chart") {
+                reference {
+                  ... on Metaobject {
+                    handle
+                    displayName
+                  }
+                }
+              }
+            }
+          }
+          pageInfo { hasNextPage }
+        }
+      }
+    `;
+
+    const data = await shopifyGraphQL(query, { cursor });
+
+    const edges = data.products.edges || [];
+
+    const items = edges.map(e => {
+      const p = e.node;
+      const chartRef = p.metafield && p.metafield.reference ? p.metafield.reference : null;
+
+      // prefer numeric __SKU tags
+      let skuTag = "";
+      for (const t of (p.tags || [])) {
+        if (t.startsWith("__")) {
+          const core = t.replace(/^__+/, "");
+          if (/^\d+$/.test(core)) { skuTag = t; break; }
+        }
+      }
+      if (!skuTag) skuTag = (p.tags || []).find(t => t.startsWith("__")) || "";
+
+      return {
+        title: p.title,
+        handle: p.handle,
+        skuTag,
+        chartName: chartRef ? (chartRef.displayName || "") : "",
+        chartHandle: chartRef ? (chartRef.handle || "") : "",
+      };
+    });
+
+    res.json({
+      ok: true,
+      items,
+      nextCursor: edges.length ? edges[edges.length - 1].cursor : null,
+      hasNextPage: !!data.products.pageInfo.hasNextPage
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+});
+
+// ===============================
+// LIST SIZE CHART METAOBJECTS
+// ===============================
+app.get("/api/charts", async (req, res) => {
+  try {
+    const cursor = req.query.cursor || null;
+
+    const query = `
+      query Charts($cursor: String) {
+        metaobjects(type: "size_chart", first: 100, after: $cursor) {
+          edges {
+            cursor
+            node {
+              id
+              handle
+              updatedAt
+              fields { key value }
+            }
+          }
+          pageInfo { hasNextPage }
+        }
+      }
+    `;
+
+    const data = await shopifyGraphQL(query, { cursor });
+
+    const edges = data.metaobjects.edges || [];
+    const items = edges.map(e => {
+      const m = e.node;
+      const field = (k) => (m.fields || []).find(f => f.key === k)?.value || "";
+      return {
+        id: m.id,
+        handle: m.handle,
+        updatedAt: m.updatedAt,
+        skuTag: field("sku_tag"),
+        chartName: field("chart_name"),
+        direction: field("direction")
+      };
+    });
+
+    res.json({
+      ok: true,
+      items,
+      nextCursor: edges.length ? edges[edges.length - 1].cursor : null,
+      hasNextPage: !!data.metaobjects.pageInfo.hasNextPage
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+});
+// ===============================
+// FETCH ONE CHART BY SKU TAG FIELD
+// ===============================
+app.get("/api/chart", async (req, res) => {
+  try {
+    const skuTag = normalizeSkuTag(req.query.sku || req.query.handle || "");
+    if (!skuTag) return res.status(400).json({ ok: false, error: "Missing sku" });
+
+    const query = `
+      query FindChart($q: String) {
+        metaobjects(type: "size_chart", first: 5, query: $q) {
+          edges {
+            node {
+              id
+              handle
+              fields { key value }
+            }
+          }
+        }
+      }
+    `;
+
+    // Try both underscore variants because your data has _ and __
+    const candidates = [skuTag, "_" + skuTag.replace(/^__+/, ""), "__" + skuTag.replace(/^_+/, "")];
+
+    let found = null;
+    let tried = [];
+
+    for (const c of candidates) {
+      tried.push(c);
+      const data = await shopifyGraphQL(query, { q: `sku_tag:${c}` });
+      const edge = (data.metaobjects.edges || [])[0];
+      if (edge && edge.node) {
+        found = edge.node;
+        break;
+      }
+    }
+
+    if (!found) return res.json({ ok: false, error: "Chart not found", tried });
+
+    const field = (k) => (found.fields || []).find(f => f.key === k)?.value || "";
+
+    res.json({
+      ok: true,
+      id: found.id,
+      handle: found.handle,
+      skuTag: field("sku_tag"),
+      chartName: field("chart_name"),
+      direction: field("direction") || "row",
+      columns_json: field("columns_json") || "[]",
+      rows_json: field("rows_json") || "[]",
+      footer: field("footer") || ""
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Size Chart app running at http://localhost:${PORT}`);
 });
