@@ -220,10 +220,56 @@ $("saveBtn").addEventListener("click", async () => {
   if (!res.ok) {
     $("status").textContent = json.error || "Error";
     return;
-  }
-
-  $("status").textContent =
+  }  $("status").textContent =
     `Saved. Linked to ${json.linkedProducts} product(s).`;
 });
 
-loadTemplates();
+function getQueryParam(name){
+  const u = new URL(window.location.href);
+  return u.searchParams.get(name);
+}
+
+async function loadExistingChartIfAny(){
+  const sku = getQueryParam("sku");
+  if (!sku) return;
+
+  // Fill SKU input (UI shows __ prefix separately, so store only the core digits)
+  const core = String(sku).replace(/^__+/, "");
+  const skuInput = $("skuTag");
+  if (skuInput) skuInput.value = core;
+
+  const res = await fetch("/api/chart?sku=" + encodeURIComponent(sku));
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok || !json.ok) {
+    $("status").textContent = json.error || "Could not load chart";
+    return;
+  }
+
+  let columns = [];
+  let rows = [];
+  try { columns = JSON.parse(json.columns_json || "[]"); } catch(e) {}
+  try { rows = JSON.parse(json.rows_json || "[]"); } catch(e) {}
+
+  const sizes = (columns || []).slice(1);
+  const gridRows = (rows || []).map(r => ({
+    label: r.label,
+    values: Array.isArray(r.values) ? r.values : []
+  }));
+
+  current.sizes = sizes;
+  current.rows = gridRows;
+
+  if ($("chartName")) $("chartName").value = json.chartName || "";
+  if ($("footer")) $("footer").value = json.footer || "";
+
+  renderGrid();
+  $("status").textContent = "Loaded existing chart.";
+}
+
+async function init(){
+  await loadTemplates();
+  await loadExistingChartIfAny();
+}
+
+init();
