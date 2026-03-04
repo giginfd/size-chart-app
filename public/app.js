@@ -293,23 +293,20 @@ init();
   const status = document.getElementById("copyJsonStatus");
   if (!btn) return;
 
-  function buildJsonPayload(){
-    const skuCore = String(document.getElementById("skuTag")?.value || "").trim().replace(/^__+/, "").replace(/^_+/, "");
-    const payload = {
-      sku_tag: skuCore ? ("__" + skuCore) : "",
-      chart_name: String(document.getElementById("chartName")?.value || "").trim(),
-      direction: templates?.[current.templateKey]?.direction || "row",
-      columns_json: JSON.stringify(["Tag Size", ...current.sizes]),
-      rows_json: JSON.stringify(current.rows.map(r => ({
-        label: r.label,
-        unit: null,
-        values: Array.isArray(r.values) ? r.values : []
-      }))),
-      footer: String(document.getElementById("footer")?.value || "").trim()
-    };
-    return payload;
-  }
+function buildJsonPayload(){
 
+  const cols = ["Tag Size", ...current.sizes];
+
+  const lines = [];
+  lines.push(cols.join("\t"));
+
+  current.rows.forEach(r=>{
+    const row = [r.label, ...(r.values || [])];
+    lines.push(row.join("\t"));
+  });
+
+  return lines.join("\n");
+}
   async function copyText(text){
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
@@ -327,9 +324,8 @@ init();
 
   btn.addEventListener("click", async () => {
     try{
-      const payload = buildJsonPayload();
-      const text = JSON.stringify(payload, null, 2);
-      await copyText(text);
+const text = buildJsonPayload();
+await copyText(text);
       if (status) status.textContent = "Copied.";
       setTimeout(() => { if (status) status.textContent = ""; }, 1800);
     } catch(e){

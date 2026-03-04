@@ -442,3 +442,52 @@ table.audit-table tbody tr:hover td{
   opacity:.7;
 }
 .nfd-modal__close:hover{ opacity:1; }
+
+/* =========================
+   Toolbar buttons
+   ========================= */
+.nfd-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  margin: 8px 0 16px;
+}
+
+.nfd-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,.18);
+  background:#fff;
+  color:inherit;
+  text-decoration:none;
+  font-family:Inter, system-ui, -apple-system, Arial, sans-serif;
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:8px;
+  line-height:1;
+}
+
+.nfd-btn:hover{ border-color: rgba(0,0,0,.35); }
+
+.nfd-btn--secondary{
+  background: rgba(0,0,0,.04);
+}
+
+.nfd-btn--ghost{
+  background: transparent;
+  border-style:dashed;
+}
+
+.nfd-status{
+  font-size:12px;
+  opacity:.75;
+  margin-left:6px;
+  white-space:nowrap;
+}
