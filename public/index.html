@@ -8,13 +8,15 @@
 </head>
 <body>
   <div class="wrap">
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
-  <h1 style="margin:0;">Size Chart Editor</h1>
-  <a class="nfd-link" href="/audit.html">Go to Audit</a>
-  <button id="copyOpen" type="button" class="nfd-link" style="border:0;background:transparent;cursor:pointer;text-decoration:underline;">Copy to another SKU</button>
+<div class="nfd-toolbar">
+  <button id="copyJsonBtn" class="nfd-btn nfd-btn--ghost" type="button">Copy JSON</button>
+  <div id="copyJsonStatus" class="nfd-status" aria-live="polite"></div>
 </div>
 
-    <p class="hint"><a href="/image-import.html">Go to Image Import</a></p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+  <h1 style="margin:0;">Size Chart Editor</h1>
+</div>
+
 
     <div class="row">
       <label>SKU Tag</label>
@@ -62,25 +64,27 @@
 
   <script src="/app.js"></script>
 
+</body>
+</html>
+
 <!-- Copy chart modal -->
 <div class="nfd-modal" id="copyModal" hidden>
   <div class="nfd-modal__backdrop" data-copy-close></div>
-  <div class="nfd-modal__panel" role="dialog" aria-modal="true" aria-label="Copy size chart">
+
+  <div class="nfd-modal__panel" role="dialog" aria-modal="true">
     <div class="nfd-modal__header">
       <div class="nfd-modal__title">Copy to another SKU</div>
-      <button type="button" class="nfd-modal__close" data-copy-close aria-label="Close">✕</button>
+      <button type="button" class="nfd-modal__close" data-copy-close>✕</button>
     </div>
 
     <div class="row">
       <label>New SKU Tag</label>
-      <input id="copySku" placeholder="__011496" />
-      <div class="hint">Required. Must be unique.</div>
+      <input id="copySku" placeholder="__011496">
     </div>
 
     <div class="row">
       <label>New Chart Name</label>
-      <input id="copyName" placeholder="Men's Slim Crew" />
-      <div class="hint">Required.</div>
+      <input id="copyName" placeholder="New chart name">
     </div>
 
     <div class="actions">
@@ -90,5 +94,3 @@
   </div>
 </div>
 
-</body>
-</html>
