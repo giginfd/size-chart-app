@@ -691,3 +691,53 @@ body input, body select, body textarea{
   flex-wrap:wrap;
   margin-top: 12px;
 }
+
+
+/* =========================
+   Header + logo
+   ========================= */
+.nfd-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin: 2px 0 10px;
+}
+.nfd-logo{
+  height: 18px;
+  width: auto;
+  display:block;
+  opacity: .95;
+}
+
+/* =========================
+   Kill the weird wrap bar
+   ========================= */
+.wrap{
+  height:auto !important;
+  min-height:0 !important;
+  background:#fff !important;
+  border:1px solid rgba(0,0,0,.10) !important;
+  border-radius:14px !important;
+  box-shadow: 0 12px 34px rgba(0,0,0,.08) !important;
+  overflow: visible !important;
+}
+.wrap::before,
+.wrap::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Make the top area tighter */
+.nfd-toolbar{
+  margin: 0 0 10px !important;
+}
+
+/* =========================
+   Footer field sizing
+   ========================= */
+.nfd-footer-input{
+  max-width: 320px;
+}
+@media (max-width: 720px){
+  .nfd-footer-input{ max-width: 100%; }
+}
