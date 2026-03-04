@@ -15,7 +15,7 @@ function fmtDate(iso){
 
 function render(list){
   $("tbody").innerHTML = list.map(item => {
-    const editUrl = `/index.html?sku=${encodeURIComponent(item.handle || item.skuTag || "")}`;
+const editUrl = `/index.html?chartId=${encodeURIComponent(item.id)}`;
     const linked = (item.linkedCount == null) ? "" : String(item.linkedCount);
     const orphan = (item.isOrphan === true) ? "YES" : "";
     return `
