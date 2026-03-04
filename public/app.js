@@ -194,7 +194,6 @@ $("sizes").addEventListener("change", () => {
 $("saveBtn").addEventListener("click", async () => {
   $("status").textContent = "Saving...";
 
-  // Prune empty size columns right before saving
   const pruned = pruneEmptySizeColumns(current.sizes, current.rows);
   current.sizes = pruned.sizes;
   current.rows = pruned.rows;
@@ -217,28 +216,33 @@ $("saveBtn").addEventListener("click", async () => {
 
   const json = await res.json().catch(() => ({}));
 
-  if (!res.ok) {
+  if (!res.ok || !json.ok) {
     $("status").textContent = json.error || "Error";
     return;
-  }  $("status").textContent =
-    `Saved. Linked to ${json.linkedProducts} product(s).`;
-});
+  }
 
+  $("status").textContent = `Saved. Linked to ${json.linkedProducts} product(s).`;
+});
 function getQueryParam(name){
   const u = new URL(window.location.href);
   return u.searchParams.get(name);
 }
-
 async function loadExistingChartIfAny(){
+  const chartId = getQueryParam("chartId");
   const sku = getQueryParam("sku");
-  if (!sku) return;
+  if (!chartId && !sku) return;
 
-  // Fill SKU input (UI shows __ prefix separately, so store only the core digits)
-  const core = String(sku).replace(/^__+/, "");
-  const skuInput = $("skuTag");
-  if (skuInput) skuInput.value = core;
+  const url = chartId
+    ? ("/api/chart?id=" + encodeURIComponent(chartId))
+    : ("/api/chart?sku=" + encodeURIComponent(sku));
 
-  const res = await fetch("/api/chart?sku=" + encodeURIComponent(sku));
+  if (sku) {
+    const core = String(sku).replace(/^__+/, "").replace(/^_+/, "");
+    const skuInput = $("skuTag");
+    if (skuInput) skuInput.value = core;
+  }
+
+  const res = await fetch(url);
   const json = await res.json().catch(() => ({}));
 
   if (!res.ok || !json.ok) {
@@ -263,8 +267,8 @@ async function loadExistingChartIfAny(){
   if ($("chartName")) $("chartName").value = json.chartName || "";
   if ($("footer")) $("footer").value = json.footer || "";
 
-  renderGrid();
-  $("status").textContent = "Loaded existing chart.";
+renderGrid();
+$("status").textContent = "Loaded existing chart.";
 }
 
 async function init(){
