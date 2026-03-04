@@ -280,3 +280,67 @@ tbody th{
   min-height:120px;
   overflow:auto;
 }
+
+/* =========================
+   Audit table improvements
+   ========================= */
+.audit-table-wrap{
+  width:100%;
+  overflow:auto;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:10px;
+  background:#fff;
+}
+
+table.audit-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width: 980px; /* forces horizontal scroll instead of squishing columns */
+  font-size: 13px;
+}
+
+table.audit-table th,
+table.audit-table td{
+  padding:10px 12px;
+  border-bottom:1px solid rgba(0,0,0,.08);
+  vertical-align:top;
+  white-space:nowrap;
+}
+
+table.audit-table thead th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#111;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:12px;
+}
+
+table.audit-table tbody tr:hover td{
+  background: rgba(0,0,0,.02);
+}
+
+.audit-col-sku{ width: 160px; }
+.audit-col-name{ width: 420px; white-space:normal; }
+.audit-col-dir{ width: 90px; }
+.audit-col-updated{ width: 200px; }
+.audit-col-action{ width: 90px; text-align:right; }
+
+.audit-toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin: 10px 0 12px;
+}
+
+.audit-toolbar input{
+  flex: 1 1 320px;
+}
+
+.audit-pill{
+  font-size:12px;
+  opacity:.75;
+}

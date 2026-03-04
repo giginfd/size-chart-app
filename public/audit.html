@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Size Chart Audit</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="nfd-card">
+      <div class="nfd-card-header">
+        <div>
+          <div class="nfd-eyebrow">Naked & Famous Denim</div>
+          <h1 class="nfd-title">Size Chart Audit</h1>
+          <div class="nfd-subtitle">
+            Browse products linked to size charts. Search by SKU tag, title, or handle. Click Edit to open the chart editor.
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center;">
+          <a class="nfd-link" href="/index.html">Back to Editor</a>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Search</label>
+        <input id="q" placeholder="__101110006 or hemp blend or strong-guy" />
+      </div>
+
+      <div class="actions">
+        <button id="searchBtn" type="button">Search</button>
+        <button id="clearBtn" type="button">Clear</button>
+        <div id="status" class="nfd-status"></div>
+      </div>
+
+      <div class="tableWrap" style="margin-top:14px;">
+        <table id="tbl">
+<thead>
+  <tr>
+    <th class="audit-col-sku">SKU Tag</th>
+    <th class="audit-col-name">Chart Name</th>
+    <th class="audit-col-dir">Direction</th>
+    <th class="audit-col-updated">Updated</th>
+    <th class="audit-col-action"></th>
+  </tr>
+</thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="actions" style="justify-content:space-between; margin-top:12px;">
+        <button id="prevBtn" type="button">Prev</button>
+        <button id="nextBtn" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/audit.js"></script>
+</body>
+</html>
