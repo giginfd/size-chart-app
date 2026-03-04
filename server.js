@@ -721,6 +721,81 @@ app.get("/api/chart", async (req, res) => {
   }
 });
 
+// ===============================
+// DUPLICATE A SIZE CHART (new handle = newSkuTag)
+// ===============================
+app.post("/api/duplicate_chart", async (req, res) => {
+  try {
+    const sourceId = String(req.body?.sourceChartId || "").trim();
+    const newSkuTag = normalizeSkuTag(req.body?.newSkuTag || "");
+    const newChartName = String(req.body?.newChartName || "").trim();
+
+    if (!sourceId) return res.status(400).json({ ok: false, error: "Missing sourceChartId" });
+    if (!newSkuTag) return res.status(400).json({ ok: false, error: "Missing newSkuTag" });
+    if (!newChartName) return res.status(400).json({ ok: false, error: "Missing newChartName" });
+
+    // 1) Load source chart by ID
+    const qById = `
+      query GetChartById($id: ID!) {
+        metaobject(id: $id) {
+          id
+          handle
+          type
+          fields { key value }
+        }
+      }
+    `;
+    const srcData = await shopifyGraphQL(qById, { id: sourceId });
+    const src = srcData.metaobject;
+    if (!src) return res.status(404).json({ ok: false, error: "Source chart not found" });
+
+    const srcField = (k) => (src.fields || []).find(f => f.key === k)?.value || "";
+
+    // 2) Build new fields by copying source and overriding SKU + name + updatedAt
+    const nowIso = new Date().toISOString();
+
+    const fields = [
+      { key: "sku_tag", value: newSkuTag },
+      { key: "chart_name", value: newChartName },
+      { key: "direction", value: srcField("direction") || "row" },
+      { key: "columns_json", value: srcField("columns_json") || "[]" },
+      { key: "rows_json", value: srcField("rows_json") || "[]" },
+      { key: "footer", value: srcField("footer") || "" },
+      // Optional fields if your definition has them:
+      { key: "source_id", value: srcField("source_id") || "" },
+      { key: "updated_at", value: nowIso }
+    ].filter(f => f.value !== undefined);
+
+    // 3) Create new metaobject with handle exactly = SKU tag
+    const createMutation = `
+      mutation CreateChart($input: MetaobjectCreateInput!) {
+        metaobjectCreate(metaobject: $input) {
+          metaobject { id handle }
+          userErrors { field message }
+        }
+      }
+    `;
+
+    const createInput = {
+      type: "size_chart",
+      handle: newSkuTag,
+      fields
+    };
+
+    const created = await shopifyGraphQL(createMutation, { input: createInput });
+    const errs = created.metaobjectCreate?.userErrors || [];
+    const mo = created.metaobjectCreate?.metaobject;
+
+    if (errs.length || !mo) {
+      return res.status(400).json({ ok: false, error: "Could not duplicate chart", userErrors: errs });
+    }
+
+    return res.json({ ok: true, newChartId: mo.id, newHandle: mo.handle });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Size Chart app running at http://localhost:${PORT}`);
 });

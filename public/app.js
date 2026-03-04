@@ -1,3 +1,4 @@
+// Copy chart modal logic
 let templates = {};
 let current = { templateKey: "men_bottoms", sizes: [], rows: [] };
 
@@ -283,3 +284,56 @@ async function init(){
 }
 
 init();
+
+// =========================
+// Copy JSON button
+// =========================
+(function(){
+  const btn = document.getElementById("copyJsonBtn");
+  const status = document.getElementById("copyJsonStatus");
+  if (!btn) return;
+
+  function buildJsonPayload(){
+    const skuCore = String(document.getElementById("skuTag")?.value || "").trim().replace(/^__+/, "").replace(/^_+/, "");
+    const payload = {
+      sku_tag: skuCore ? ("__" + skuCore) : "",
+      chart_name: String(document.getElementById("chartName")?.value || "").trim(),
+      direction: templates?.[current.templateKey]?.direction || "row",
+      columns_json: JSON.stringify(["Tag Size", ...current.sizes]),
+      rows_json: JSON.stringify(current.rows.map(r => ({
+        label: r.label,
+        unit: null,
+        values: Array.isArray(r.values) ? r.values : []
+      }))),
+      footer: String(document.getElementById("footer")?.value || "").trim()
+    };
+    return payload;
+  }
+
+  async function copyText(text){
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  }
+
+  btn.addEventListener("click", async () => {
+    try{
+      const payload = buildJsonPayload();
+      const text = JSON.stringify(payload, null, 2);
+      await copyText(text);
+      if (status) status.textContent = "Copied.";
+      setTimeout(() => { if (status) status.textContent = ""; }, 1800);
+    } catch(e){
+      if (status) status.textContent = "Copy failed.";
+    }
+  });
+})();
