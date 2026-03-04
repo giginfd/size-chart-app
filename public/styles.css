@@ -511,3 +511,183 @@ body{
   flex-wrap:wrap;
   margin: 8px 0 16px;
 }
+
+
+/* =========================
+   UX polish (Shopify-like)
+   ========================= */
+:root{
+  --ui-border: rgba(0,0,0,.12);
+  --ui-border-strong: rgba(0,0,0,.18);
+  --ui-bg: #fff;
+  --ui-soft: rgba(0,0,0,.03);
+  --ui-text: #111;
+  --ui-radius: 12px;
+}
+
+/* Keep everything in a centered card */
+.wrap{
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  padding: 18px 18px 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.06);
+}
+
+/* Title row: stronger hierarchy */
+h1{
+  font-size: 16px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Toolbar buttons: consistent + calmer */
+.nfd-toolbar{
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.nfd-btn{
+  border-radius: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--ui-border);
+  background: #fff;
+}
+.nfd-btn--secondary{
+  background: var(--ui-soft);
+}
+.nfd-btn--ghost{
+  border-style: solid;
+  background: #fff;
+  opacity: .95;
+}
+.nfd-btn:hover{
+  border-color: var(--ui-border-strong);
+}
+
+/* Form grid: make it feel “structured” */
+.row{ margin-bottom: 14px; }
+.row label{
+  font-size: 11px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  opacity: .75;
+  margin-bottom: 6px;
+}
+input, select, textarea{
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+input:focus, select:focus, textarea:focus{
+  outline: none;
+  border-color: rgba(0,0,0,.35);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+}
+
+/* The big table area: give it breathing room */
+.tableWrap{
+  margin-top: 12px;
+  padding-top: 6px;
+}
+
+/* Table: cleaner borders */
+.tableWrap table{
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Actions row */
+.actions{
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* “Save to Shopify” primary feel */
+#saveBtn, button[type="submit"], button{
+  border-radius: 10px;
+}
+#saveBtn{
+  border: 1px solid rgba(0,0,0,.18);
+  background: #111;
+  color: #fff;
+  padding: 10px 14px;
+}
+#saveBtn:hover{
+  opacity: .92;
+}
+
+/* Status message: softer */
+#status, .nfd-status{
+  font-size: 12px;
+  opacity: .75;
+}
+
+
+/* =========================
+   Final layout override (fix floaty UI)
+   ========================= */
+
+/* Make sure the page doesn't look like it's floating */
+html, body{
+  background: #f6f6f6;
+}
+
+/* Force the main app container to be a centered card */
+body .wrap{
+  max-width: 1100px;
+  margin: 28px auto;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 14px;
+  padding: 18px 18px 22px;
+  box-shadow: 0 12px 34px rgba(0,0,0,.08);
+}
+
+/* Title + toolbar on one line */
+body .wrap > .nfd-toolbar{
+  margin: 0 0 12px;
+  justify-content: flex-end;
+}
+
+/* If h1 exists, tighten and align */
+body .wrap h1{
+  margin: 0 0 14px;
+}
+
+/* Make rows feel structured */
+body .row{
+  margin-bottom: 12px;
+}
+body .row label{
+  margin-bottom: 6px;
+}
+
+/* Form controls: consistent sizing */
+body input, body select, body textarea{
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Tighten the paste textarea area */
+#paste{
+  min-height: 72px;
+}
+
+/* Table container should fill the card width */
+.tableWrap{
+  width: 100%;
+}
+.tableWrap table{
+  width: 100%;
+}
+
+/* Make Save button sit under table nicely */
+.actions{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  flex-wrap:wrap;
+  margin-top: 12px;
+}
