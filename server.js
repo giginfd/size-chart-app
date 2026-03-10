@@ -997,6 +997,10 @@ BIS_CACHE_AT = Date.now();
   }
 }
 app.post("/api/bis/import", async (req, res) => {
+ const token = String(req.headers["x-bis-import"] || "").trim();
+if (!process.env.BIS_IMPORT_TOKEN || token !== process.env.BIS_IMPORT_TOKEN) {
+  return res.status(403).json({ ok: false, error: "Unauthorized import" });
+}
   try {
     const items = Array.isArray(req.body?.items) ? req.body.items : [];
     if (!items.length) {
