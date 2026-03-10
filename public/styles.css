@@ -497,12 +497,10 @@ table.audit-table tbody tr:hover td{
    Layout fix: keep editor centered
    ========================= */
 body{
-  max-width:1200px;
-  margin:0 auto;
+  margin:0;
   padding:24px;
   font-family:Inter,system-ui,-apple-system,Arial,sans-serif;
 }
-
 .nfd-toolbar{
   display:flex;
   align-items:center;

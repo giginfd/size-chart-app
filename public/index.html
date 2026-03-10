@@ -1,107 +1,138 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Size Chart Editor</title>
-  <link rel="stylesheet" href="/styles.css?v=1" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Size Chart Editor</title>
+<link rel="stylesheet" href="/styles.css?v=1" />
 </head>
+
 <body>
-  <div class="wrap">
+
+<div class="wrap">
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+
+<div class="nfd-brand">
+<img class="nfd-logo"
+src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
+alt="Naked & Famous Denim">
 </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
-  <div class="nfd-brand">
-  <img class="nfd-logo" src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280" alt="Naked & Famous Denim">
-</div>
 <h1 style="margin:0;">Size Chart Editor</h1>
+
 <div class="nfd-toolbar">
-    <a class="nfd-btn" href="/index.html" target="_blank" rel="noopener">New Size Chart</a>
+<a class="nfd-btn nfd-btn--secondary" href="/">Home</a>
+<a class="nfd-btn" href="/index.html" target="_blank" rel="noopener">New Size Chart</a>
 <a class="nfd-btn" href="/audit.html">Go to Audit</a>
-    <a class="nfd-btn nfd-btn--secondary" href="/image-import.html">Go to Image Import</a>
-<button id="copyJsonBtn" class="nfd-btn nfd-btn--ghost" type="button">Copy chart to clipboard</button>
-  <div id="copyJsonStatus" class="nfd-status" aria-live="polite"></div>
+<a class="nfd-btn nfd-btn--secondary" href="/image-import.html">Go to Image Import</a>
+
+<button id="copyJsonBtn" class="nfd-btn nfd-btn--ghost" type="button">
+Copy chart to clipboard
+</button>
+
+<div id="copyJsonStatus" class="nfd-status" aria-live="polite"></div>
 </div>
 
-
-    <div class="row">
-      <label>SKU Tag</label>
-      <div class="skuRow">
-        <span class="skuPrefix">__</span>
-        <input id="skuTag" placeholder="101110006" />
-      </div>
-    </div>
-
-    <div class="row">
-      <label>Template</label>
-      <select id="template"></select>
-    </div>
-
-    <div class="row">
-      <label>Chart name</label>
-      <input id="chartName" placeholder="Optional (defaults to SKU or template)" />
-    </div>
-
-    <div class="row split">
-      <div>
-        <label>Sizes</label>
-        <input id="sizes" placeholder="Leave blank for template sizes, or paste: 27,28,29,30" />
-        <div class="hint">Leave blank to use template sizes. Or paste any list.</div>
+</div>
 
 <div class="row">
-<div>
-        <label>Footer (optional)</label>
-        <input id="footer" class="nfd-footer-input" placeholder="Optional" />
-      </div>
+<label>SKU Tag</label>
+<div class="skuRow">
+<span class="skuPrefix">__</span>
+<input id="skuTag" placeholder="101110006" />
+</div>
 </div>
 
-      </div>
-      
-    </div>
+<div class="row">
+<label>Template</label>
+<select id="template"></select>
+</div>
 
-    <div class="paste">
-      <label>Paste table (optional)</label>
-      <textarea id="paste" placeholder="Paste a full table block here (tabs or CSV). Click Parse to fill grid."></textarea>
-      <button id="parseBtn" type="button">Parse</button>
-    </div>
+<div class="row">
+<label>Chart name</label>
+<input id="chartName" placeholder="Optional (defaults to SKU or template)" />
+</div>
 
-    <div id="grid"></div>
+<div class="row split">
 
-    <div class="actions">
-      <button id="saveBtn" type="button">Save to Shopify</button>
-      <div id="status"></div>
-    </div>
-  </div>
+<div>
 
-  <script src="/app.js"></script>
+<label>Sizes</label>
+
+<input id="sizes"
+placeholder="Leave blank for template sizes, or paste: 27,28,29,30" />
+
+<div class="hint">
+Leave blank to use template sizes. Or paste any list.
+</div>
+
+<div class="row">
+
+<label>Footer (optional)</label>
+
+<input id="footer"
+class="nfd-footer-input"
+placeholder="Optional" />
+
+</div>
+
+</div>
+
+</div>
+
+<div class="paste">
+
+<label>Paste table (optional)</label>
+
+<textarea id="paste"
+placeholder="Paste a full table block here (tabs or CSV). Click Parse to fill grid."></textarea>
+
+<button id="parseBtn" type="button">Parse</button>
+
+</div>
+
+<div id="grid"></div>
+
+<div class="actions">
+<button id="saveBtn" type="button">Save to Shopify</button>
+<div id="status"></div>
+</div>
+
+</div>
+
+<script src="/app.js"></script>
 
 </body>
 </html>
 
-<!-- Copy chart modal -->
+
 <div class="nfd-modal" id="copyModal" hidden>
-  <div class="nfd-modal__backdrop" data-copy-close></div>
 
-  <div class="nfd-modal__panel" role="dialog" aria-modal="true">
-    <div class="nfd-modal__header">
-      <div class="nfd-modal__title">Copy to another SKU</div>
-      <button type="button" class="nfd-modal__close" data-copy-close>✕</button>
-    </div>
+<div class="nfd-modal__backdrop" data-copy-close></div>
 
-    <div class="row">
-      <label>New SKU Tag</label>
-      <input id="copySku" placeholder="__011496">
-    </div>
+<div class="nfd-modal__panel" role="dialog" aria-modal="true">
 
-    <div class="row">
-      <label>New Chart Name</label>
-      <input id="copyName" placeholder="New chart name">
-    </div>
-
-    <div class="actions">
-      <button id="copyConfirm" type="button">Create Copy</button>
-      <div id="copyStatus" class="nfd-status"></div>
-    </div>
-  </div>
+<div class="nfd-modal__header">
+<div class="nfd-modal__title">Copy to another SKU</div>
+<button type="button" class="nfd-modal__close" data-copy-close>✕</button>
 </div>
 
+<div class="row">
+<label>New SKU Tag</label>
+<input id="copySku" placeholder="__011496">
+</div>
+
+<div class="row">
+<label>New Chart Name</label>
+<input id="copyName" placeholder="New chart name">
+</div>
+
+<div class="actions">
+<button id="copyConfirm" type="button">Create Copy</button>
+<div id="copyStatus" class="nfd-status"></div>
+</div>
+
+</div>
+
+</div>

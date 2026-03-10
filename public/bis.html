@@ -1,60 +1,502 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Back in Stock Requests</title>
   <link rel="stylesheet" href="/styles.css?v=1" />
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #111111;
+      --muted: #5f6368;
+      --line: #e3e6ea;
+      --line-strong: #d5d9de;
+      --accent: #111111;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Prevent outside/global stylesheet rules from causing odd alignment */
+    body > .bis-wrap {
+      width: min(100% - 32px, 1680px);
+      margin: 24px auto 40px;
+      padding: 0;
+    }
+
+    .bis-wrap {
+      width: min(100% - 32px, 1680px);
+      margin: 24px auto 40px;
+      padding: 0;
+    }
+
+    .bis-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .bis-header-card,
+    .bis-table-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .bis-header-card {
+      padding: 20px;
+    }
+
+    .bis-top {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .nfd-brand {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .nfd-logo {
+      display: block;
+      width: 100%;
+      max-width: 190px;
+      height: auto;
+    }
+
+    .bis-head-right {
+      min-width: 0;
+    }
+
+    .bis-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .bis-title {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .bis-help {
+      margin: 0;
+      max-width: 900px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .nfd-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .bis-filters {
+      display: grid;
+      grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(180px, 180px);
+      gap: 16px;
+      margin-top: 22px;
+      align-items: end;
+    }
+
+    .bis-filters > div {
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 0.98rem;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus {
+      border-color: #111;
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+    }
+
+    .bis-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button,
+    .nfd-btn {
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    button:hover,
+    .nfd-btn:hover {
+      border-color: #bfc5cc;
+    }
+
+    .bis-refresh-btn {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .bis-refresh-btn[disabled] {
+      opacity: 0.72;
+      cursor: wait;
+    }
+
+    #status {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .bis-status-card {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfbfc;
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr);
+      gap: 10px 14px;
+      align-items: start;
+    }
+
+    .bis-status-card label {
+      margin: 0;
+    }
+
+    .bis-status-main {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .bis-status-help,
+    #lastUpdated,
+    .bis-note-line {
+      font-size: 0.93rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .bis-note-line {
+      margin-top: 10px;
+    }
+
+    .bis-table-card {
+      overflow: hidden;
+    }
+
+    .bis-table-wrap {
+      overflow: auto;
+      max-height: 70vh;
+    }
+
+    .bis-table {
+      width: 100%;
+      min-width: 1280px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.96rem;
+    }
+
+    .bis-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8f9fb;
+      border-bottom: 1px solid var(--line-strong);
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .bis-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+      background: #fff;
+    }
+
+    .bis-table tbody tr:hover td {
+      background: #fafbfc;
+    }
+
+    .bis-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .bis-table th,
+    .bis-table td {
+      white-space: nowrap;
+    }
+
+    .bis-table th:first-child,
+    .bis-table td:first-child {
+      min-width: 320px;
+      white-space: normal;
+    }
+
+    .bis-table th:nth-child(2),
+    .bis-table td:nth-child(2) {
+      min-width: 110px;
+    }
+
+    .bis-table th:nth-child(3),
+    .bis-table td:nth-child(3) {
+      min-width: 180px;
+    }
+
+    .bis-table th:last-child,
+    .bis-table td:last-child {
+      min-width: 90px;
+    }
+
+      cursor: pointer;
+}
+
+
+.sortBtn {
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+
+.sortBtn:hover {
+  background: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.5);
+}
+
+.sortBtn:active {
+  transform: translateY(1px);
+}
+
+.sortBtn.is-active {
+  background: #fff;
+  color: #111;
+  border-color: #fff;
+}
+    .bis-table a {
+      font-weight: 600;
+    }
+
+    @media (max-width: 1100px) {
+      .bis-top {
+        grid-template-columns: 1fr;
+      }
+
+      .nfd-brand {
+        margin-bottom: 4px;
+      }
+
+      .nfd-logo {
+        max-width: 170px;
+      }
+
+      .bis-filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .bis-wrap,
+      body > .bis-wrap {
+        width: min(100% - 20px, 1680px);
+        margin: 12px auto 24px;
+      }
+
+      .bis-header-card {
+        padding: 16px;
+      }
+
+      .bis-title {
+        font-size: 1.45rem;
+      }
+
+      .bis-help {
+        font-size: 0.95rem;
+      }
+
+      .bis-filters {
+        grid-template-columns: 1fr;
+      }
+
+      .bis-status-card {
+        grid-template-columns: 1fr;
+      }
+
+      .bis-table {
+        font-size: 0.92rem;
+      }
+
+      .bis-table thead th,
+      .bis-table tbody td {
+        padding: 12px 14px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
-      <div class="nfd-brand">
-        <img class="nfd-logo" src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280" alt="Naked & Famous Denim">
-      </div>
-      <h1 style="margin:0;">Back in Stock Requests</h1>
-      <div class="nfd-toolbar">
-        <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
-        <a class="nfd-btn nfd-btn--secondary" href="/audit.html">Go to Audit</a>
-      </div>
-    </div>
+  <div class="bis-wrap">
+    <div class="bis-shell">
+      <section class="bis-header-card">
+        <div class="bis-top">
+          <div class="nfd-brand">
+            <img
+              class="nfd-logo"
+              src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
+              alt="Naked & Famous Denim"
+            >
+          </div>
 
-    <div class="row">
-      <label>Search</label>
-      <input id="q" placeholder="Search product, SKU, variant, URL..." />
-    </div>
+          <div class="bis-head-right">
+            <div class="bis-head-row">
+              <div>
+                <h1 class="bis-title">Back In Stock Requests</h1>
+                <p class="bis-help">
+                  This tool uses cached back-in-stock data for faster loading. If the cache is empty or outdated, click
+                  <strong>Refresh BIS Data</strong>. While a refresh is running, the table may continue showing older data
+                  until the new cache is ready.
+                </p>
+              </div>
 
-    <div class="row split">
-      <div>
-        <label>Minimum waiting</label>
-        <input id="minWaiting" type="number" value="0" />
-      </div>
-      <div>
-        <label>Variant title</label>
-        <input id="variantFilter" placeholder="27, 28, 29, QTY..." />
-      </div>
-    </div>
+              <div class="nfd-toolbar">
+                <a class="nfd-btn nfd-btn--secondary" href="/">Home</a>
+                <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
+                <a class="nfd-btn nfd-btn--secondary" href="/audit.html">Go to Audit</a>
+              </div>
+            </div>
 
-    <div class="actions">
-      <button id="searchBtn" type="button">Apply</button>
-      <button id="clearBtn" type="button">Clear</button>
-      <div id="status"></div>
-    </div>
+            <div class="bis-filters">
+              <div class="bis-search">
+                <label for="q">Search</label>
+                <input id="q" placeholder="Search product, SKU, variant, or URL" />
+              </div>
 
-    <div class="tableWrap">
-      <table>
-<thead>
-  <tr>
-    <th><button type="button" class="sortBtn" data-sort="productTitle">Product</button></th>
-    <th><button type="button" class="sortBtn" data-sort="variantTitle">Variant</button></th>
-    <th><button type="button" class="sortBtn" data-sort="sku">SKU</button></th>
-    <th><button type="button" class="sortBtn" data-sort="waitingContactsCount">Waiting</button></th>
-    <th><button type="button" class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
-    <th>Link</th>
-  </tr>
-</thead>
-        <tbody id="tbody"></tbody>
-      </table>
+              <div>
+                <label for="variantFilter">Variant title</label>
+                <input id="variantFilter" placeholder="27, 28, 29, QTY..." />
+              </div>
+
+              <div>
+                <label for="minWaiting">Minimum waiting</label>
+                <input id="minWaiting" type="number" value="0" />
+              </div>
+            </div>
+
+            <div class="bis-actions">
+              <button id="refreshBtn" type="button" class="bis-refresh-btn">Refresh BIS Data</button>
+              <button id="searchBtn" type="button">Apply</button>
+              <button id="clearBtn" type="button">Clear</button>
+              <div id="status"></div>
+            </div>
+
+            <div class="bis-status-card">
+              <label>Refresh status</label>
+              <div>
+                <div id="jobStatus" class="bis-status-main">Idle - OK</div>
+                <div class="bis-status-help">
+                  If a refresh is running, wait for it to finish. The table updates automatically when the new cache is ready.
+                </div>
+              </div>
+
+              <label>Last updated</label>
+              <div id="lastUpdated">Never</div>
+            </div>
+
+            <div class="bis-note-line">
+              Tip: scroll horizontally to view all columns on smaller screens.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bis-table-card">
+        <div class="bis-table-wrap">
+          <table class="bis-table" id="tbl">
+            <thead>
+              <tr>
+                <th><button type="button" class="sortBtn" data-sort="productTitle">Product</button></th>
+                <th><button type="button" class="sortBtn" data-sort="variantTitle">Variant</button></th>
+                <th><button type="button" class="sortBtn" data-sort="sku">SKU</button></th>
+                <th><button type="button" class="sortBtn" data-sort="omnisendCount">Omnisend</button></th>
+                <th><button type="button" class="sortBtn" data-sort="ampCount">AMP Legacy</button></th>
+                <th><button type="button" class="sortBtn" data-sort="totalCount">Total</button></th>
+                <th><button type="button" class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </div>
 

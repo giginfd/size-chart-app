@@ -2,17 +2,37 @@ const $ = (s) => document.querySelector(s);
 
 let ALL = [];
 let SORT = { key: "waitingContactsCount", dir: "desc" };
+let pollTimer = null;
+let lastRunning = false;
+
 function fmtDate(v) {
   if (!v) return "";
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return v;
   return d.toLocaleString();
 }
+
+function fmtLastUpdated(ts) {
+  if (!ts) return "Never";
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return "Never";
+  return d.toLocaleString();
+}
+
+function escapeHtml(v) {
+  return String(v ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+
 function compareValues(a, b, key) {
   const av = a?.[key];
   const bv = b?.[key];
 
-  if (key === "waitingContactsCount") {
+  if (["waitingContactsCount", "omnisendCount", "ampCount", "totalCount"].includes(key)) {
     return Number(av || 0) - Number(bv || 0);
   }
 
@@ -22,18 +42,10 @@ function compareValues(a, b, key) {
 
   return String(av || "").localeCompare(String(bv || ""));
 }
-
 function sortItems(items) {
   const out = [...items].sort((a, b) => compareValues(a, b, SORT.key));
   if (SORT.dir === "desc") out.reverse();
   return out;
-}
-function escapeHtml(v) {
-  return String(v ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function row(item) {
@@ -42,12 +54,29 @@ function row(item) {
     <tr>
       <td>${escapeHtml(item.productTitle || "")}</td>
       <td>${escapeHtml(item.variantTitle || "")}</td>
-      <td>${escapeHtml(item.sku || "")}</td>
-      <td>${escapeHtml(item.waitingContactsCount ?? "")}</td>
-      <td>${escapeHtml(fmtDate(item.lastRequestedAt || ""))}</td>
+<td>${escapeHtml(item.sku || "")}</td>
+<td>${escapeHtml(item.omnisendCount ?? 0)}</td>
+<td>${escapeHtml(item.ampCount ?? 0)}</td>
+<td><strong>${escapeHtml(item.totalCount ?? 0)}</strong></td>
+<td>${escapeHtml(fmtDate(item.lastRequestedAt || ""))}</td>
       <td>${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">Open</a>` : ""}</td>
     </tr>
   `;
+}
+function updateSortButtons() {
+  document.querySelectorAll(".sortBtn").forEach((btn) => {
+    const key = btn.dataset.sort;
+    const base = btn.dataset.label || btn.textContent.replace(/ ↑| ↓/, "").trim();
+
+    btn.dataset.label = base;
+    btn.classList.toggle("is-active", key === SORT.key);
+
+    if (key === SORT.key) {
+      btn.textContent = `${base}${SORT.dir === "asc" ? " ↑" : " ↓"}`;
+    } else {
+      btn.textContent = base;
+    }
+  });
 }
 
 function applyFilters() {
@@ -60,9 +89,10 @@ function applyFilters() {
       item.productTitle,
       item.variantTitle,
       item.sku,
+      item.productID,
+      item.variantID,
       item.url
     ].join(" ").toLowerCase();
-
     const waiting = Number(item.waitingContactsCount || 0);
     const variant = String(item.variantTitle || "").toLowerCase();
 
@@ -73,24 +103,88 @@ function applyFilters() {
     return true;
   });
 
-const sorted = sortItems(filtered);
-$("#tbody").innerHTML = sorted.map(row).join("");
+  const sorted = sortItems(filtered);
+  $("#tbody").innerHTML = sorted.map(row).join("");
   $("#status").textContent = `${filtered.length} shown / ${ALL.length} total`;
+updateSortButtons();
 }
 
-async function load() {
-  $("#status").textContent = "Loading...";
+async function loadBisData() {
   const res = await fetch("/api/bis");
   const data = await res.json();
 
   if (!data.ok) {
-    $("#status").textContent = "Failed to load data";
-    console.error(data);
+    $("#status").textContent = "Failed to load BIS data";
     return;
   }
 
   ALL = Array.isArray(data.items) ? data.items : [];
+  $("#lastUpdated").textContent = fmtLastUpdated(data.cacheAt);
   applyFilters();
+}
+
+async function loadBisStatus() {
+  const res = await fetch("/api/bis/status");
+  const data = await res.json();
+
+  if (!data.ok) {
+    $("#jobStatus").textContent = "Status unavailable";
+    return;
+  }
+
+  const job = data.job || {};
+  const running = !!job.running;
+
+  if (running) {
+    $("#jobStatus").textContent =
+      `Refreshing in background. Please wait. Passes ${job.passesDone || 0}/3 • Pages ${job.pagesDone || 0} • Rows ${job.rowsFound || 0}`;
+    $("#refreshBtn").disabled = true;
+    $("#refreshBtn").textContent = "Refreshing...";
+  } else if (job.error) {
+    $("#jobStatus").textContent = `Error: ${job.error}`;
+    $("#refreshBtn").disabled = false;
+    $("#refreshBtn").textContent = "Refresh BIS Data";
+  } else if ((data.cacheCount || 0) === 0) {
+    $("#jobStatus").textContent = "No BIS cache yet. Click Refresh BIS Data to build it.";
+    $("#refreshBtn").disabled = false;
+    $("#refreshBtn").textContent = "Refresh BIS Data";
+  } else {
+    $("#jobStatus").textContent = "Up to Date";
+    $("#refreshBtn").disabled = false;
+    $("#refreshBtn").textContent = "Refresh BIS Data";
+  }
+
+  $("#lastUpdated").textContent = fmtLastUpdated(data.cacheAt);
+
+  if (lastRunning && !running) {
+    await loadBisData();
+  }
+
+  lastRunning = running;
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(loadBisStatus, 2000);
+}
+
+async function refreshBisData() {
+  $("#jobStatus").textContent = "Starting refresh. Please wait...";
+  $("#refreshBtn").disabled = true;
+  $("#refreshBtn").textContent = "Refreshing...";
+
+  const res = await fetch("/api/bis/refresh", { method: "POST" });
+  const data = await res.json();
+
+  if (!data.ok) {
+    $("#jobStatus").textContent = "Failed to start refresh";
+    $("#refreshBtn").disabled = false;
+    $("#refreshBtn").textContent = "Refresh BIS Data";
+    return;
+  }
+
+  startPolling();
+  await loadBisStatus();
 }
 
 $("#searchBtn").addEventListener("click", applyFilters);
@@ -100,11 +194,10 @@ $("#clearBtn").addEventListener("click", () => {
   $("#variantFilter").value = "";
   applyFilters();
 });
+
 $("#q").addEventListener("keydown", (e) => {
   if (e.key === "Enter") applyFilters();
 });
-
-load();
 
 document.querySelectorAll(".sortBtn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -120,3 +213,9 @@ document.querySelectorAll(".sortBtn").forEach((btn) => {
     applyFilters();
   });
 });
+
+$("#refreshBtn").addEventListener("click", refreshBisData);
+
+loadBisData();
+loadBisStatus();
+startPolling();

@@ -7,6 +7,7 @@ const SHOP_DOMAIN = process.env.SHOP_DOMAIN;
 const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
 const API_VERSION = process.env.API_VERSION || "2025-01";
 const PORT = Number(process.env.PORT || 8787);
+const PUBLIC_DIR = path.join(__dirname, "public");
 
 if (!SHOP_DOMAIN || !ADMIN_API_TOKEN) {
   console.error("Missing SHOP_DOMAIN or ADMIN_API_TOKEN in .env");
@@ -304,14 +305,15 @@ function basicAuth(req, res, next) {
   next();
 }
 
+
 app.use(basicAuth);
 app.use(express.json({ limit: "2mb" }));
-app.use(express.static(path.join(__dirname, "public")));
+
 app.get("/", (req, res) => {
-  res.type("html");
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(PUBLIC_DIR, "home.html"));
 });
 
+app.use(express.static(PUBLIC_DIR));
 app.get("/api/templates", (req, res) => {
   res.json({
     men_bottoms: {
@@ -799,31 +801,105 @@ app.post("/api/duplicate_chart", async (req, res) => {
 
 let BIS_CACHE = null;
 let BIS_CACHE_AT = 0;
+let BIS_JOB = {
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  passesDone: 0,
+  pagesDone: 0,
+  rowsFound: 0,
+  error: null
+};
+
 const PASSES = [
   { sortBy: "waitingContactsCount", sortOrder: "desc" },
   { sortBy: "lastRequestedAt", sortOrder: "asc" },
   { sortBy: "lastRequestedAt", sortOrder: "desc" }
 ];
-app.get("/api/bis", async (req, res) => {
-  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  if (BIS_CACHE && Date.now() - BIS_CACHE_AT < CACHE_TTL) {
-    return res.json({
-      ok: true,
-      count: BIS_CACHE.length,
-      items: BIS_CACHE,
-      cached: true
-    });
+async function fetchAmpDemand() {
+  const ampToken = String(process.env.AMP_TOKEN || "").trim();
+  if (!ampToken) {
+    return [];
   }
+
+  const AMP_ENDPOINT = "https://app.backinstock.org/api/variants";
+  let page = 1;
+  let more = true;
+  const acc = {};
+
+  while (more) {
+    const auth = Buffer.from(`${ampToken}:`).toString("base64");
+
+    const res = await fetch(`${AMP_ENDPOINT}?per_page=250&page=${page}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Basic ${auth}`
+      }
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`AMP API ${res.status}: ${text.slice(0, 300)}`);
+    }
+
+    const arr = await res.json();
+    if (!Array.isArray(arr) || arr.length === 0) break;
+
+    for (const row of arr) {
+const sku = String(row?.sku || "").trim();
+const demand = Number(row?.unsent_notifications_count || 0);
+const description = String(row?.description || "").trim();
+
+if (!sku) continue;
+if (demand <= 0) continue;
+
+if (!acc[sku]) {
+  acc[sku] = {
+    sku,
+    demand: 0,
+    description
+  };
+}
+
+acc[sku].demand += demand;
+
+if (!acc[sku].description && description) {
+  acc[sku].description = description;
+}
+    }
+
+    more = arr.length >= 250;
+    page += 1;
+
+    if (more) {
+      await new Promise(r => setTimeout(r, 80));
+    }
+  }
+
+return Object.values(acc)
+  .sort((a, b) => b.demand - a.demand);
+}
+async function refreshBisData() {
+  if (BIS_JOB.running) return;
+
+  BIS_JOB = {
+    running: true,
+    startedAt: Date.now(),
+    finishedAt: null,
+    passesDone: 0,
+    pagesDone: 0,
+    rowsFound: 0,
+    error: null
+  };
 
   try {
     const cookie = process.env.OMNISEND_COOKIE;
-    console.log("Cookie exists:", !!cookie);
-    console.log("Cookie preview:", cookie ? cookie.slice(0, 120) : "NONE");
-
-    const limit = 25;
-    let all = [];
+const ampRows = await fetchAmpDemand();
+const ampBySku = Object.fromEntries(ampRows.map(r => [r.sku, r.demand]));    
+const limit = 25;
     const seen = new Set();
+    const all = [];
 
     for (const pass of PASSES) {
       let offset = 0;
@@ -842,10 +918,13 @@ app.get("/api/bis", async (req, res) => {
 
         const json = await r.json();
         const items = json.requestedProducts || [];
+const cleaned = items.filter(item => String(item?.sku || "").trim());
+
+        BIS_JOB.pagesDone += 1;
 
         if (!items.length) break;
 
-        for (const item of items) {
+for (const item of cleaned) {
           const key = `${item.productID}-${item.variantID}-${item.sku}`;
           if (!seen.has(key)) {
             seen.add(key);
@@ -853,25 +932,88 @@ app.get("/api/bis", async (req, res) => {
           }
         }
 
+        BIS_JOB.rowsFound = all.length;
         offset += limit;
       }
+      BIS_JOB.passesDone += 1;
     }
 
-    BIS_CACHE = all;
-    BIS_CACHE_AT = Date.now();
+const merged = all.map(item => {
+  const sku = String(item.sku || "").trim();
+  const omnisendCount = Number(item.waitingContactsCount || 0);
+  const ampCount = Number(ampBySku[sku] || 0);
 
-    res.json({
-      ok: true,
-      count: all.length,
-      items: all,
-      cached: false
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
+  return {
+    ...item,
+    omnisendCount,
+    ampCount,
+    totalCount: omnisendCount + ampCount
+  };
 });
 
+const existingSkus = new Set(
+  merged.map(item => String(item.sku || "").trim())
+);
+
+for (const row of ampRows) {
+  const sku = String(row.sku || "").trim();
+  if (!sku || existingSkus.has(sku)) continue;
+
+  merged.push({
+    productID: "",
+    variantID: "",
+productTitle: row.description || "AMP-only",
+    variantTitle: "",
+    url: "",
+    sku,
+    waitingContactsCount: 0,
+    lastRequestedAt: "",
+    omnisendCount: 0,
+    ampCount: Number(row.demand || 0),
+    totalCount: Number(row.demand || 0)
+  });
+}
+
+BIS_CACHE = merged;
+BIS_CACHE_AT = Date.now();
+    BIS_JOB.finishedAt = Date.now();
+    BIS_JOB.running = false;
+  } catch (e) {
+    BIS_JOB.error = String(e.message || e);
+    BIS_JOB.finishedAt = Date.now();
+    BIS_JOB.running = false;
+  }
+}
+app.get("/api/bis", async (req, res) => {
+  return res.json({
+    ok: true,
+    count: BIS_CACHE ? BIS_CACHE.length : 0,
+    items: BIS_CACHE || [],
+    cached: true,
+    cacheAt: BIS_CACHE_AT || null
+  });
+});
+app.post("/api/bis/refresh", async (req, res) => {
+  if (BIS_JOB.running) {
+    return res.json({ ok: true, started: false, message: "Already running" });
+  }
+
+  refreshBisData(); // start background job
+
+  res.json({
+    ok: true,
+    started: true
+  });
+});
+
+app.get("/api/bis/status", async (req, res) => {
+  res.json({
+    ok: true,
+    job: BIS_JOB,
+    cacheCount: BIS_CACHE ? BIS_CACHE.length : 0,
+    cacheAt: BIS_CACHE_AT
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Size Chart app running at http://localhost:${PORT}`);
