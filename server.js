@@ -996,6 +996,76 @@ BIS_CACHE_AT = Date.now();
     BIS_JOB.running = false;
   }
 }
+app.post("/api/bis/import", async (req, res) => {
+  try {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (!items.length) {
+      return res.status(400).json({ ok: false, error: "No items provided" });
+    }
+
+    const ampRows = await fetchAmpDemand();
+    const ampBySku = Object.fromEntries(ampRows.map(r => [r.sku, r.demand]));
+
+    const seen = new Set();
+    const cleaned = [];
+
+    for (const item of items) {
+      const sku = String(item?.sku || "").trim();
+      if (!sku) continue;
+
+      const key = `${item.productID || ""}-${item.variantID || ""}-${sku}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const omnisendCount = Number(item.waitingContactsCount || 0);
+      const ampCount = Number(ampBySku[sku] || 0);
+
+      cleaned.push({
+        ...item,
+        omnisendCount,
+        ampCount,
+        totalCount: omnisendCount + ampCount
+      });
+    }
+
+    const existingSkus = new Set(cleaned.map(item => String(item.sku || "").trim()));
+
+    for (const row of ampRows) {
+      const sku = String(row.sku || "").trim();
+      if (!sku || existingSkus.has(sku)) continue;
+
+      cleaned.push({
+        productID: "",
+        variantID: "",
+        productTitle: row.description || "AMP-only",
+        variantTitle: "",
+        url: "",
+        sku,
+        waitingContactsCount: 0,
+        lastRequestedAt: "",
+        omnisendCount: 0,
+        ampCount: Number(row.demand || 0),
+        totalCount: Number(row.demand || 0)
+      });
+    }
+
+    BIS_CACHE = cleaned;
+    BIS_CACHE_AT = Date.now();
+    BIS_JOB = {
+      running: false,
+      startedAt: null,
+      finishedAt: Date.now(),
+      passesDone: 0,
+      pagesDone: 0,
+      rowsFound: cleaned.length,
+      error: null
+    };
+
+    res.json({ ok: true, count: cleaned.length });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e.message || e) });
+  }
+});
 app.get("/api/bis", async (req, res) => {
   return res.json({
     ok: true,
