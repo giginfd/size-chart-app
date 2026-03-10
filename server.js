@@ -909,15 +909,27 @@ const limit = 25;
           "https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts" +
           `?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;
 
-        const r = await fetch(url, {
-          headers: {
-            Accept: "application/json",
-            Cookie: cookie
-          }
-        });
+const r = await fetch(url, {
+  headers: {
+    Accept: "application/json",
+    Cookie: cookie
+  }
+});
 
-        const json = await r.json();
-        const items = json.requestedProducts || [];
+const text = await r.text();
+
+if (!r.ok) {
+  throw new Error(`Omnisend ${r.status}: ${text.slice(0, 300)}`);
+}
+
+let json;
+try {
+  json = text ? JSON.parse(text) : {};
+} catch (e) {
+  throw new Error(`Omnisend returned non-JSON response: ${text.slice(0, 300)}`);
+}
+
+const items = json.requestedProducts || [];
 const cleaned = items.filter(item => String(item?.sku || "").trim());
 
         BIS_JOB.pagesDone += 1;
