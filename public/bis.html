@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Back in Stock Requests</title>
+  <link rel="stylesheet" href="/styles.css?v=1" />
+</head>
+<body>
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+      <div class="nfd-brand">
+        <img class="nfd-logo" src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280" alt="Naked & Famous Denim">
+      </div>
+      <h1 style="margin:0;">Back in Stock Requests</h1>
+      <div class="nfd-toolbar">
+        <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
+        <a class="nfd-btn nfd-btn--secondary" href="/audit.html">Go to Audit</a>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>Search</label>
+      <input id="q" placeholder="Search product, SKU, variant, URL..." />
+    </div>
+
+    <div class="row split">
+      <div>
+        <label>Minimum waiting</label>
+        <input id="minWaiting" type="number" value="0" />
+      </div>
+      <div>
+        <label>Variant title</label>
+        <input id="variantFilter" placeholder="27, 28, 29, QTY..." />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="searchBtn" type="button">Apply</button>
+      <button id="clearBtn" type="button">Clear</button>
+      <div id="status"></div>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+<thead>
+  <tr>
+    <th><button type="button" class="sortBtn" data-sort="productTitle">Product</button></th>
+    <th><button type="button" class="sortBtn" data-sort="variantTitle">Variant</button></th>
+    <th><button type="button" class="sortBtn" data-sort="sku">SKU</button></th>
+    <th><button type="button" class="sortBtn" data-sort="waitingContactsCount">Waiting</button></th>
+    <th><button type="button" class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
+    <th>Link</th>
+  </tr>
+</thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/bis.js"></script>
+</body>
+</html>

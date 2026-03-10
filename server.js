@@ -796,6 +796,83 @@ app.post("/api/duplicate_chart", async (req, res) => {
     res.status(500).json({ ok: false, error: String(e.message || e) });
   }
 });
+
+let BIS_CACHE = null;
+let BIS_CACHE_AT = 0;
+const PASSES = [
+  { sortBy: "waitingContactsCount", sortOrder: "desc" },
+  { sortBy: "lastRequestedAt", sortOrder: "asc" },
+  { sortBy: "lastRequestedAt", sortOrder: "desc" }
+];
+app.get("/api/bis", async (req, res) => {
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  if (BIS_CACHE && Date.now() - BIS_CACHE_AT < CACHE_TTL) {
+    return res.json({
+      ok: true,
+      count: BIS_CACHE.length,
+      items: BIS_CACHE,
+      cached: true
+    });
+  }
+
+  try {
+    const cookie = process.env.OMNISEND_COOKIE;
+    console.log("Cookie exists:", !!cookie);
+    console.log("Cookie preview:", cookie ? cookie.slice(0, 120) : "NONE");
+
+    const limit = 25;
+    let all = [];
+    const seen = new Set();
+
+    for (const pass of PASSES) {
+      let offset = 0;
+
+      while (true) {
+        const url =
+          "https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts" +
+          `?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;
+
+        const r = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+            Cookie: cookie
+          }
+        });
+
+        const json = await r.json();
+        const items = json.requestedProducts || [];
+
+        if (!items.length) break;
+
+        for (const item of items) {
+          const key = `${item.productID}-${item.variantID}-${item.sku}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            all.push(item);
+          }
+        }
+
+        offset += limit;
+      }
+    }
+
+    BIS_CACHE = all;
+    BIS_CACHE_AT = Date.now();
+
+    res.json({
+      ok: true,
+      count: all.length,
+      items: all,
+      cached: false
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Size Chart app running at http://localhost:${PORT}`);
 });
