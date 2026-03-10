@@ -295,6 +295,7 @@ const upload = multer({
 const APP_PASSWORD = process.env.APP_PASSWORD || "";
 
 function basicAuth(req, res, next) {
+  if (req.path === "/api/bis/import") return next();
   if (!APP_PASSWORD) return next();
 
   const header = req.headers.authorization || "";
