@@ -1,905 +1,528 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Back in Stock Requests</title>
-  <link rel="stylesheet" href="/styles.css?v=1" />
-  <style>
-    :root {
-      --bg: #f6f7f9;
-      --card: #ffffff;
-      --text: #111111;
-      --muted: #5f6368;
-      --line: #e3e6ea;
-      --line-strong: #d5d9de;
-      --accent: #111111;
-      --accent-soft: #f0f2f4;
-
-      --success-bg: #edf8f0;
-      --success-text: #146c2e;
-      --success-line: #b7dfbf;
-
-      --warning-bg: #fff7e8;
-      --warning-text: #9a6700;
-      --warning-line: #f1d08a;
-
-      --danger-bg: #fff1f1;
-      --danger-text: #b42318;
-      --danger-line: #f2b8b5;
-
-      --info-bg: #f4f7ff;
-      --info-text: #2949a3;
-      --info-line: #c9d4ff;
-
-      --radius: 14px;
-      --radius-sm: 10px;
-      --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      font-size: 16px;
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-    }
-
-    body > .bis-wrap,
-    .bis-wrap {
-      width: min(100% - 32px, 1680px);
-      margin: 24px auto 40px;
-      padding: 0;
-    }
-
-    .bis-shell {
-      display: grid;
-      gap: 18px;
-    }
-
-    .bis-header-card,
-    .bis-table-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .bis-header-card {
-      padding: 20px;
-    }
-
-    .bis-top {
-      display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 24px;
-      align-items: start;
-    }
-
-    .nfd-brand {
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
-    }
-
-    .nfd-logo {
-      display: block;
-      width: 100%;
-      max-width: 190px;
-      height: auto;
-    }
-
-    .bis-head-right {
-      min-width: 0;
-    }
-
-    .bis-head-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .bis-title {
-      margin: 0 0 8px;
-      font-size: 1.85rem;
-      line-height: 1.15;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .bis-help {
-      margin: 0;
-      max-width: 920px;
-      color: var(--muted);
-      font-size: 0.98rem;
-      line-height: 1.6;
-    }
-
-    .nfd-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    label {
-      display: block;
-      margin: 0 0 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-
-    input {
-      width: 100%;
-      min-height: 46px;
-      padding: 0 14px;
-      font: inherit;
-      font-size: 0.98rem;
-      color: var(--text);
-      background: #fff;
-      border: 1px solid var(--line-strong);
-      border-radius: 10px;
-      outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    input:focus {
-      border-color: #111;
-      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
-    }
-
-    button,
-    .nfd-btn,
-    .helper-btn {
-      min-height: 42px;
-      padding: 0 14px;
-      border-radius: 10px;
-      border: 1px solid var(--line-strong);
-      background: #fff;
-      color: var(--text);
-      font: inherit;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
-    }
-
-    button:hover,
-    .nfd-btn:hover,
-    .helper-btn:hover {
-      border-color: #bfc5cc;
-      background: #fafafa;
-    }
-
-    button:active,
-    .nfd-btn:active,
-    .helper-btn:active {
-      transform: translateY(1px);
-    }
-
-    .bis-refresh-btn {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    .bis-refresh-btn:hover {
-      background: #222;
-      border-color: #222;
-    }
-
-    .bis-refresh-btn[disabled] {
-      opacity: 0.72;
-      cursor: wait;
-    }
-
-    .helper-btn--primary {
-      background: var(--success-bg);
-      border-color: var(--success-line);
-      color: var(--success-text);
-    }
-
-    .helper-btn--warning {
-      background: var(--warning-bg);
-      border-color: var(--warning-line);
-      color: var(--warning-text);
-    }
-
-    .helper-btn--danger {
-      background: var(--danger-bg);
-      border-color: var(--danger-line);
-      color: var(--danger-text);
-    }
-
-    .helper-btn--info {
-      background: var(--info-bg);
-      border-color: var(--info-line);
-      color: var(--info-text);
-    }
-
-    .bis-filters-card {
-      margin-top: 22px;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fcfcfd;
-    }
-
-    .bis-filters-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .bis-filters-title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .bis-filters-subtitle {
-      margin: 4px 0 0;
-      font-size: 0.92rem;
-      color: var(--muted);
-    }
-
-    .bis-filters {
-      display: grid;
-      grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(180px, 180px);
-      gap: 16px;
-      align-items: end;
-    }
-
-    .bis-filters > div {
-      min-width: 0;
-    }
-
-    .bis-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    #status {
-      font-size: 0.92rem;
-      color: var(--muted);
-      min-height: 20px;
-      display: flex;
-      align-items: center;
-    }
-
-    .bis-helper-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    .helper-card,
-    .status-card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      padding: 16px;
-    }
-
-    .helper-card--omnisend {
-      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-    }
-
-    .helper-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .helper-title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .helper-subtitle {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 0.93rem;
-      line-height: 1.5;
-    }
-
-    .helper-pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 0 10px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
-      border: 1px solid var(--info-line);
-      color: var(--info-text);
-      background: var(--info-bg);
-    }
-
-    .helper-alert {
-      margin: 0 0 14px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 0.93rem;
-      line-height: 1.5;
-      border: 1px solid var(--warning-line);
-      background: var(--warning-bg);
-      color: var(--warning-text);
-    }
-
-    .helper-action-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .helper-steps {
-      display: grid;
-      gap: 10px;
-    }
-
-    .helper-step {
-      display: grid;
-      grid-template-columns: 40px minmax(0, 1fr);
-      gap: 12px;
-      align-items: start;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-    }
-
-    .helper-step-number {
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.95rem;
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .helper-step h3 {
-      margin: 0 0 4px;
-      font-size: 0.96rem;
-      line-height: 1.35;
-    }
-
-    .helper-step p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .helper-step strong {
-      color: var(--text);
-    }
-
-    .helper-mini-note {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--success-line);
-      background: var(--success-bg);
-      color: var(--success-text);
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .status-stack {
-      display: grid;
-      gap: 12px;
-    }
-
-    .status-box {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px;
-      background: #fff;
-    }
-
-    .status-label {
-      margin: 0 0 6px;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .status-main {
-      font-size: 1rem;
-      font-weight: 700;
-      line-height: 1.35;
-    }
-
-    .status-help {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .status-box--success {
-      border-color: var(--success-line);
-      background: var(--success-bg);
-    }
-
-    .status-box--warning {
-      border-color: var(--warning-line);
-      background: var(--warning-bg);
-    }
-
-    .status-box--danger {
-      border-color: var(--danger-line);
-      background: var(--danger-bg);
-    }
-
-    .status-box--info {
-      border-color: var(--info-line);
-      background: var(--info-bg);
-    }
-
-    #jobStatus {
-      color: var(--text);
-    }
-
-    #lastUpdated {
-      font-size: 0.95rem;
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    .bis-note-line {
-      margin-top: 16px;
-      font-size: 0.93rem;
-      line-height: 1.5;
-      color: var(--muted);
-    }
-
-    .bis-table-card {
-      overflow: hidden;
-    }
-
-    .bis-table-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background: #fcfcfd;
-    }
-
-    .bis-table-title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .bis-table-subtitle {
-      margin: 2px 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .bis-table-wrap {
-      overflow: auto;
-      max-height: 70vh;
-    }
-
-    .bis-table {
-      width: 100%;
-      min-width: 1280px;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 0.96rem;
-    }
-
-    .bis-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #f8f9fb;
-      border-bottom: 1px solid var(--line-strong);
-      text-align: left;
-      padding: 14px 16px;
-      font-size: 0.84rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-
-    .bis-table tbody td {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: top;
-      text-align: left;
-      background: #fff;
-    }
-
-    .bis-table tbody tr:hover td {
-      background: #fafbfc;
-    }
-
-    .bis-table tbody tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .bis-table th,
-    .bis-table td {
-      white-space: nowrap;
-    }
-
-    .bis-table th:first-child,
-    .bis-table td:first-child {
-      min-width: 320px;
-      white-space: normal;
-    }
-
-    .bis-table th:nth-child(2),
-    .bis-table td:nth-child(2) {
-      min-width: 110px;
-    }
-
-    .bis-table th:nth-child(3),
-    .bis-table td:nth-child(3) {
-      min-width: 180px;
-    }
-
-    .bis-table th:last-child,
-    .bis-table td:last-child {
-      min-width: 90px;
-    }
-
-    .sortBtn {
-      cursor: pointer;
-      border: 1px solid rgba(0,0,0,.10);
-      background: #fff;
-      color: #111;
-      padding: 7px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .03em;
-      transition: background .15s ease, border-color .15s ease, transform .05s ease;
-    }
-
-    .sortBtn:hover {
-      background: #f5f6f8;
-      border-color: rgba(0,0,0,.18);
-    }
-
-    .sortBtn:active {
-      transform: translateY(1px);
-    }
-
-    .sortBtn.is-active {
-      background: #111;
-      color: #fff;
-      border-color: #111;
-    }
-
-    .bis-table a {
-      font-weight: 600;
-    }
-
-    .soft-muted {
-      color: var(--muted);
-    }
-
-    @media (max-width: 1180px) {
-      .bis-top {
-        grid-template-columns: 1fr;
-      }
-
-      .nfd-logo {
-        max-width: 170px;
-      }
-
-      .bis-helper-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .bis-filters {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .bis-wrap,
-      body > .bis-wrap {
-        width: min(100% - 20px, 1680px);
-        margin: 12px auto 24px;
-      }
-
-      .bis-header-card {
-        padding: 16px;
-      }
-
-      .bis-title {
-        font-size: 1.45rem;
-      }
-
-      .bis-help {
-        font-size: 0.95rem;
-      }
-
-      .bis-filters {
-        grid-template-columns: 1fr;
-      }
-
-      .helper-step {
-        grid-template-columns: 1fr;
-      }
-
-      .helper-step-number {
-        width: 36px;
-        height: 36px;
-      }
-
-      .bis-table {
-        font-size: 0.92rem;
-      }
-
-      .bis-table thead th,
-      .bis-table tbody td {
-        padding: 12px 14px;
-      }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Back In Stock Requests</title>
+
+<style>
+
+:root{
+--bg:#f6f7f9;
+--card:#ffffff;
+--text:#111;
+--muted:#5f6368;
+--line:#e3e6ea;
+--accent:#111;
+
+--success-bg:#edf8f0;
+--success-border:#b7dfbf;
+
+--warning-bg:#fff7e8;
+--warning-border:#f1d08a;
+
+--info-bg:#f4f7ff;
+--info-border:#c9d4ff;
+
+--radius:12px;
+}
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+background:var(--bg);
+color:var(--text);
+}
+
+.bis-wrap{
+width:min(100% - 32px,1680px);
+margin:24px auto 40px;
+}
+
+.bis-shell{
+display:grid;
+gap:18px;
+}
+
+.bis-card{
+background:var(--card);
+border:1px solid var(--line);
+border-radius:var(--radius);
+padding:20px;
+}
+
+.bis-top{
+display:grid;
+grid-template-columns:220px 1fr;
+gap:24px;
+}
+
+.nfd-logo{
+max-width:190px;
+}
+
+.bis-title{
+font-size:1.8rem;
+margin:0 0 6px;
+font-weight:700;
+}
+
+.bis-help{
+color:var(--muted);
+max-width:900px;
+}
+
+.bis-filters{
+display:grid;
+grid-template-columns:2fr 1fr 180px;
+gap:14px;
+margin-top:20px;
+}
+
+label{
+font-size:12px;
+text-transform:uppercase;
+font-weight:700;
+letter-spacing:.04em;
+color:var(--muted);
+display:block;
+margin-bottom:6px;
+}
+
+input{
+width:100%;
+height:44px;
+border:1px solid var(--line);
+border-radius:8px;
+padding:0 12px;
+font-size:.95rem;
+}
+
+.bis-actions{
+margin-top:14px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+align-items:center;
+}
+
+button,
+.btn{
+height:40px;
+padding:0 14px;
+border-radius:8px;
+border:1px solid var(--line);
+background:#fff;
+font-weight:600;
+cursor:pointer;
+text-decoration:none;
+display:inline-flex;
+align-items:center;
+}
+
+button:hover,
+.btn:hover{
+background:#f3f4f6;
+}
+
+.bis-refresh{
+background:#111;
+color:#fff;
+border-color:#111;
+}
+
+.btn-green{
+background:#e6f4ea;
+border-color:#b7dfbf;
+}
+
+.btn-blue{
+background:#eef3ff;
+border-color:#c9d4ff;
+}
+
+#status{
+font-size:.9rem;
+color:var(--muted);
+}
+
+/* accordion */
+
+.bis-accordion{
+border:1px solid var(--line);
+border-radius:12px;
+overflow:hidden;
+margin-top:16px;
+background:#fff;
+}
+
+.bis-accordion summary{
+cursor:pointer;
+padding:16px 18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#f9fafb;
+list-style:none;
+}
+
+.bis-accordion summary::-webkit-details-marker{
+display:none;
+}
+
+.bis-accordion-title{
+font-weight:700;
+}
+
+.bis-accordion-sub{
+font-size:.9rem;
+color:var(--muted);
+margin-top:3px;
+}
+
+.bis-accordion-content{
+padding:18px;
+border-top:1px solid var(--line);
+}
+
+/* status boxes */
+
+.status-box{
+border-radius:10px;
+padding:14px;
+border:1px solid var(--line);
+margin-bottom:12px;
+}
+
+.status-success{
+background:var(--success-bg);
+border-color:var(--success-border);
+}
+
+.status-warning{
+background:var(--warning-bg);
+border-color:var(--warning-border);
+}
+
+.status-info{
+background:var(--info-bg);
+border-color:var(--info-border);
+}
+
+.status-label{
+font-size:.75rem;
+font-weight:700;
+text-transform:uppercase;
+letter-spacing:.04em;
+color:var(--muted);
+margin-bottom:4px;
+}
+
+.status-main{
+font-weight:700;
+}
+
+/* helper steps */
+
+.helper-steps{
+display:grid;
+gap:12px;
+margin-top:10px;
+}
+
+.helper-step{
+display:grid;
+grid-template-columns:36px 1fr;
+gap:12px;
+padding:12px;
+border:1px solid var(--line);
+border-radius:10px;
+}
+
+.helper-num{
+width:36px;
+height:36px;
+background:#111;
+color:#fff;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:700;
+}
+
+.helper-alert{
+background:#fff7e8;
+border:1px solid #f1d08a;
+padding:12px;
+border-radius:10px;
+margin-bottom:14px;
+}
+
+.helper-actions{
+display:flex;
+gap:10px;
+margin-bottom:14px;
+flex-wrap:wrap;
+}
+
+/* table */
+
+.bis-table-wrap{
+overflow:auto;
+max-height:70vh;
+}
+
+table{
+width:100%;
+min-width:1200px;
+border-collapse:collapse;
+}
+
+th{
+background:#f3f4f6;
+text-align:left;
+font-size:.8rem;
+text-transform:uppercase;
+padding:12px;
+border-bottom:1px solid var(--line);
+}
+
+td{
+padding:12px;
+border-bottom:1px solid var(--line);
+}
+
+.sortBtn{
+cursor:pointer;
+border:0;
+background:none;
+font-weight:700;
+}
+
+@media(max-width:1000px){
+
+.bis-top{
+grid-template-columns:1fr;
+}
+
+.bis-filters{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
 </head>
+
 <body>
-  <div class="bis-wrap">
-    <div class="bis-shell">
-      <section class="bis-header-card">
-        <div class="bis-top">
-          <div class="nfd-brand">
-            <img
-              class="nfd-logo"
-              src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
-              alt="Naked & Famous Denim"
-            >
-          </div>
 
-          <div class="bis-head-right">
-            <div class="bis-head-row">
-              <div>
-                <h1 class="bis-title">Back In Stock Requests</h1>
-                <p class="bis-help">
-                  Search cached back-in-stock request data by product, SKU, or variant. If the numbers look old, use
-                  <strong>Refresh BIS Data</strong>. If Omnisend data itself is stale, follow the Omnisend Sync Helper below.
-                </p>
-              </div>
+<div class="bis-wrap">
+<div class="bis-shell">
 
-              <div class="nfd-toolbar">
-                <a class="nfd-btn" href="/">Home</a>
-                <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
-                <a class="nfd-btn" href="/audit.html">Go to Audit</a>
-              </div>
-            </div>
+<section class="bis-card">
 
-            <div class="bis-filters-card">
-              <div class="bis-filters-top">
-                <div>
-                  <h2 class="bis-filters-title">Filter results</h2>
-                  <p class="bis-filters-subtitle">Use one or more filters, then click Apply.</p>
-                </div>
-              </div>
+<div class="bis-top">
 
-              <div class="bis-filters">
-                <div class="bis-search">
-                  <label for="q">Search</label>
-                  <input id="q" placeholder="Product, SKU, variant, or URL" />
-                </div>
+<div>
+<img class="nfd-logo"
+src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280">
+</div>
 
-                <div>
-                  <label for="variantFilter">Variant title</label>
-                  <input id="variantFilter" placeholder="27, 28, 29, XS, QTY..." />
-                </div>
+<div>
 
-                <div>
-                  <label for="minWaiting">Minimum waiting</label>
-                  <input id="minWaiting" type="number" value="0" />
-                </div>
-              </div>
+<h1 class="bis-title">Back In Stock Requests</h1>
 
-              <div class="bis-actions">
-                <button id="refreshBtn" type="button" class="bis-refresh-btn">Refresh BIS Data</button>
-                <button id="searchBtn" type="button">Apply Filters</button>
-                <button id="clearBtn" type="button">Clear Filters</button>
-                <div id="status"></div>
-              </div>
-            </div>
+<p class="bis-help">
+Search cached back-in-stock data by product, SKU, or variant.
+If numbers look outdated click <strong>Refresh BIS Data</strong>.
+</p>
 
-            <div class="bis-helper-grid">
-              <div class="helper-card helper-card--omnisend">
-                <div class="helper-head">
-                  <div>
-                    <h2 class="helper-title">Omnisend Sync Helper</h2>
-                    <p class="helper-subtitle">
-                      Use this only when Omnisend back-in-stock counts need to be pulled again from Omnisend.
-                    </p>
-                  </div>
-                  <div class="helper-pill">Manual step needed</div>
-                </div>
+<div class="bis-filters">
 
-                <div class="helper-alert">
-                  <strong>Important:</strong> This is different from clicking <strong>Refresh BIS Data</strong>.
-                  Omnisend must be synced first if you want fresh Omnisend counts.
-                </div>
+<div>
+<label>Search</label>
+<input id="q" placeholder="Product, SKU, variant or URL">
+</div>
 
-                <div class="helper-action-row">
-                  <a id="installBookmark" class="helper-btn helper-btn--primary" href="#">
-                    Install Sync Bookmark
-                  </a>
-                  <a
-                    class="helper-btn helper-btn--info"
-                    href="https://app.omnisend.com/reports/products"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Open Omnisend Report
-                  </a>
-                </div>
+<div>
+<label>Variant</label>
+<input id="variantFilter" placeholder="27, 28, XS…">
+</div>
 
-                <div class="helper-steps">
-                  <div class="helper-step">
-                    <div class="helper-step-number">1</div>
-                    <div>
-                      <h3>Install the bookmark once</h3>
-                      <p>
-                        Click <strong>Install Sync Bookmark</strong>, then save it to your bookmarks bar.
-                        You only need to do this the first time.
-                      </p>
-                    </div>
-                  </div>
+<div>
+<label>Minimum waiting</label>
+<input id="minWaiting" type="number" value="0">
+</div>
 
-                  <div class="helper-step">
-                    <div class="helper-step-number">2</div>
-                    <div>
-                      <h3>Open the Omnisend Products Report</h3>
-                      <p>
-                        Open the Omnisend report page and <strong>wait until it fully loads</strong> before doing anything else.
-                      </p>
-                    </div>
-                  </div>
+</div>
 
-                  <div class="helper-step">
-                    <div class="helper-step-number">3</div>
-                    <div>
-                      <h3>Run your saved SYNC BIS BOOKMARK</h3>
-                      <p>
-                        Click the bookmark while you are on the Omnisend page. It can take around
-                        <strong>1 to 2 minutes</strong>. Do <strong>not</strong> close the page. Wait for the confirmation popup.
-                      </p>
-                    </div>
-                  </div>
+<div class="bis-actions">
 
-                  <div class="helper-step">
-                    <div class="helper-step-number">4</div>
-                    <div>
-                      <h3>Come back here and refresh</h3>
-                      <p>
-                        After Omnisend finishes syncing, return to this page and click
-                        <strong>Refresh BIS Data</strong> to load the newest cache into the dashboard.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+<button id="refreshBtn" class="bis-refresh">Refresh BIS Data</button>
+<button id="searchBtn">Apply</button>
+<button id="clearBtn">Clear</button>
 
-                <div class="helper-mini-note">
-                  Quick rule: <strong>Omnisend sync first</strong>, then <strong>Refresh BIS Data</strong> here.
-                </div>
-              </div>
+<div id="status"></div>
 
-              <div class="status-card">
-                <div class="helper-head" style="margin-bottom:14px;">
-                  <div>
-                    <h2 class="helper-title">Current Status</h2>
-                    <p class="helper-subtitle">This area tells users if the dashboard is ready or waiting on data.</p>
-                  </div>
-                </div>
+</div>
 
-                <div class="status-stack">
-                  <div class="status-box status-box--success">
-                    <div class="status-label">Refresh status</div>
-                    <div id="jobStatus" class="status-main">Idle - OK</div>
-                    <div class="status-help">
-                      If a refresh is running, let it finish before judging the numbers.
-                    </div>
-                  </div>
 
-                  <div class="status-box status-box--info">
-                    <div class="status-label">Last updated</div>
-                    <div id="lastUpdated">Never</div>
-                    <div class="status-help">
-                      This shows when the cache used by this page was last updated.
-                    </div>
-                  </div>
+<!-- STATUS ACCORDION -->
 
-                  <div class="status-box status-box--warning">
-                    <div class="status-label">When numbers look wrong</div>
-                    <div class="status-main">Do these 2 checks</div>
-                    <div class="status-help">
-                      1. Run the Omnisend Sync Helper if Omnisend data is stale.<br>
-                      2. Then click <strong>Refresh BIS Data</strong> on this page.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+<details class="bis-accordion" open>
 
-            <div class="bis-note-line">
-              Tip: on smaller screens, scroll horizontally to view all table columns.
-            </div>
-          </div>
-        </div>
-      </section>
+<summary>
 
-      <section class="bis-table-card">
-        <div class="bis-table-toolbar">
-          <div>
-            <h2 class="bis-table-title">Requests Table</h2>
-            <p class="bis-table-subtitle">Sort columns to find the most requested products faster.</p>
-          </div>
-        </div>
+<div>
+<div class="bis-accordion-title">Current Status</div>
+<div class="bis-accordion-sub">Shows if the dashboard is ready.</div>
+</div>
 
-        <div class="bis-table-wrap">
-          <table class="bis-table" id="tbl">
-            <thead>
-              <tr>
-                <th><button type="button" class="sortBtn" data-sort="productTitle">Product</button></th>
-                <th><button type="button" class="sortBtn" data-sort="variantTitle">Variant</button></th>
-                <th><button type="button" class="sortBtn" data-sort="sku">SKU</button></th>
-                <th><button type="button" class="sortBtn" data-sort="omnisendCount">Omnisend</button></th>
-                <th><button type="button" class="sortBtn" data-sort="ampCount">AMP Legacy</button></th>
-                <th><button type="button" class="sortBtn" data-sort="totalCount">Total</button></th>
-                <th><button type="button" class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  </div>
+</summary>
 
-  <script src="/bis.js"></script>
+<div class="bis-accordion-content">
+
+<div class="status-box status-success">
+<div class="status-label">Refresh status</div>
+<div id="jobStatus" class="status-main">Idle - OK</div>
+<div>If refresh is running, wait for it to finish.</div>
+</div>
+
+<div class="status-box status-info">
+<div class="status-label">Last Updated</div>
+<div id="lastUpdated">Never</div>
+</div>
+
+<div class="status-box status-warning">
+<div class="status-label">When numbers look wrong</div>
+<div class="status-main">Do these two checks</div>
+<div>
+1. Run Omnisend Sync Helper<br>
+2. Click Refresh BIS Data here
+</div>
+</div>
+
+</div>
+
+</details>
+
+
+<!-- OMNISEND HELPER -->
+
+<details class="bis-accordion">
+
+<summary>
+
+<div>
+<div class="bis-accordion-title">Omnisend Sync Helper</div>
+<div class="bis-accordion-sub">Use only when Omnisend counts need refreshing.</div>
+</div>
+
+</summary>
+
+<div class="bis-accordion-content">
+
+<div class="helper-alert">
+<strong>Important:</strong>
+Omnisend must sync first before refreshing this dashboard.
+</div>
+
+<div class="helper-actions">
+
+<a id="installBookmark" class="btn btn-green" href="#">
+Install Sync Bookmark
+</a>
+
+<a class="btn btn-blue"
+href="https://app.omnisend.com/reports/products"
+target="_blank">
+Open Omnisend Report
+</a>
+
+</div>
+
+<div class="helper-steps">
+
+<div class="helper-step">
+<div class="helper-num">1</div>
+<div>
+<strong>Install the bookmark</strong><br>
+Click Install Sync Bookmark and save it.
+</div>
+</div>
+
+<div class="helper-step">
+<div class="helper-num">2</div>
+<div>
+<strong>Open the Omnisend report</strong><br>
+Wait until it fully loads.
+</div>
+</div>
+
+<div class="helper-step">
+<div class="helper-num">3</div>
+<div>
+<strong>Run the bookmark</strong><br>
+Click the bookmark on that page and wait ~2 minutes.
+</div>
+</div>
+
+<div class="helper-step">
+<div class="helper-num">4</div>
+<div>
+<strong>Return here and refresh</strong><br>
+Click Refresh BIS Data.
+</div>
+</div>
+
+</div>
+
+</div>
+
+</details>
+
+</div>
+</div>
+
+</section>
+
+
+<section class="bis-card">
+
+<div class="bis-table-wrap">
+
+<table id="tbl">
+
+<thead>
+<tr>
+
+<th><button class="sortBtn" data-sort="productTitle">Product</button></th>
+<th><button class="sortBtn" data-sort="variantTitle">Variant</button></th>
+<th><button class="sortBtn" data-sort="sku">SKU</button></th>
+<th><button class="sortBtn" data-sort="omnisendCount">Omnisend</button></th>
+<th><button class="sortBtn" data-sort="ampCount">AMP</button></th>
+<th><button class="sortBtn" data-sort="totalCount">Total</button></th>
+<th><button class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
+<th>Link</th>
+
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+
+</table>
+
+</div>
+
+</section>
+
+</div>
+</div>
+
+<script src="/bis.js"></script>
+
 </body>
 </html>
