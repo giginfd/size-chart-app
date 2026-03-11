@@ -14,7 +14,26 @@
       --line: #e3e6ea;
       --line-strong: #d5d9de;
       --accent: #111111;
-      --radius: 12px;
+      --accent-soft: #f0f2f4;
+
+      --success-bg: #edf8f0;
+      --success-text: #146c2e;
+      --success-line: #b7dfbf;
+
+      --warning-bg: #fff7e8;
+      --warning-text: #9a6700;
+      --warning-line: #f1d08a;
+
+      --danger-bg: #fff1f1;
+      --danger-text: #b42318;
+      --danger-line: #f2b8b5;
+
+      --info-bg: #f4f7ff;
+      --info-text: #2949a3;
+      --info-line: #c9d4ff;
+
+      --radius: 14px;
+      --radius-sm: 10px;
       --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
 
@@ -33,13 +52,7 @@
       background: var(--bg);
     }
 
-    /* Prevent outside/global stylesheet rules from causing odd alignment */
-    body > .bis-wrap {
-      width: min(100% - 32px, 1680px);
-      margin: 24px auto 40px;
-      padding: 0;
-    }
-
+    body > .bis-wrap,
     .bis-wrap {
       width: min(100% - 32px, 1680px);
       margin: 24px auto 40px;
@@ -97,7 +110,7 @@
 
     .bis-title {
       margin: 0 0 8px;
-      font-size: 1.8rem;
+      font-size: 1.85rem;
       line-height: 1.15;
       font-weight: 700;
       letter-spacing: -0.02em;
@@ -105,7 +118,7 @@
 
     .bis-help {
       margin: 0;
-      max-width: 900px;
+      max-width: 920px;
       color: var(--muted);
       font-size: 0.98rem;
       line-height: 1.6;
@@ -115,18 +128,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-    }
-
-    .bis-filters {
-      display: grid;
-      grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(180px, 180px);
-      gap: 16px;
-      margin-top: 22px;
-      align-items: end;
-    }
-
-    .bis-filters > div {
-      min-width: 0;
     }
 
     label {
@@ -158,16 +159,9 @@
       box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
     }
 
-    .bis-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
     button,
-    .nfd-btn {
+    .nfd-btn,
+    .helper-btn {
       min-height: 42px;
       padding: 0 14px;
       border-radius: 10px;
@@ -182,11 +176,20 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
     }
 
     button:hover,
-    .nfd-btn:hover {
+    .nfd-btn:hover,
+    .helper-btn:hover {
       border-color: #bfc5cc;
+      background: #fafafa;
+    }
+
+    button:active,
+    .nfd-btn:active,
+    .helper-btn:active {
+      transform: translateY(1px);
     }
 
     .bis-refresh-btn {
@@ -195,51 +198,322 @@
       border-color: var(--accent);
     }
 
+    .bis-refresh-btn:hover {
+      background: #222;
+      border-color: #222;
+    }
+
     .bis-refresh-btn[disabled] {
       opacity: 0.72;
       cursor: wait;
     }
 
-    #status {
-      font-size: 0.92rem;
-      color: var(--muted);
+    .helper-btn--primary {
+      background: var(--success-bg);
+      border-color: var(--success-line);
+      color: var(--success-text);
     }
 
-    .bis-status-card {
-      margin-top: 18px;
+    .helper-btn--warning {
+      background: var(--warning-bg);
+      border-color: var(--warning-line);
+      color: var(--warning-text);
+    }
+
+    .helper-btn--danger {
+      background: var(--danger-bg);
+      border-color: var(--danger-line);
+      color: var(--danger-text);
+    }
+
+    .helper-btn--info {
+      background: var(--info-bg);
+      border-color: var(--info-line);
+      color: var(--info-text);
+    }
+
+    .bis-filters-card {
+      margin-top: 22px;
       padding: 16px;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fbfbfc;
-      display: grid;
-      grid-template-columns: 170px minmax(0, 1fr);
-      gap: 10px 14px;
-      align-items: start;
+      border-radius: 14px;
+      background: #fcfcfd;
     }
 
-    .bis-status-card label {
+    .bis-filters-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .bis-filters-title {
       margin: 0;
-    }
-
-    .bis-status-main {
       font-size: 1rem;
       font-weight: 700;
     }
 
-    .bis-status-help,
-    #lastUpdated,
+    .bis-filters-subtitle {
+      margin: 4px 0 0;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .bis-filters {
+      display: grid;
+      grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(180px, 180px);
+      gap: 16px;
+      align-items: end;
+    }
+
+    .bis-filters > div {
+      min-width: 0;
+    }
+
+    .bis-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    #status {
+      font-size: 0.92rem;
+      color: var(--muted);
+      min-height: 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .bis-helper-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .helper-card,
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .helper-card--omnisend {
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    }
+
+    .helper-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .helper-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .helper-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.5;
+    }
+
+    .helper-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid var(--info-line);
+      color: var(--info-text);
+      background: var(--info-bg);
+    }
+
+    .helper-alert {
+      margin: 0 0 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      border: 1px solid var(--warning-line);
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+    .helper-action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .helper-steps {
+      display: grid;
+      gap: 10px;
+    }
+
+    .helper-step {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .helper-step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .helper-step h3 {
+      margin: 0 0 4px;
+      font-size: 0.96rem;
+      line-height: 1.35;
+    }
+
+    .helper-step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .helper-step strong {
+      color: var(--text);
+    }
+
+    .helper-mini-note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--success-line);
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .status-stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .status-label {
+      margin: 0 0 6px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .status-main {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .status-help {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .status-box--success {
+      border-color: var(--success-line);
+      background: var(--success-bg);
+    }
+
+    .status-box--warning {
+      border-color: var(--warning-line);
+      background: var(--warning-bg);
+    }
+
+    .status-box--danger {
+      border-color: var(--danger-line);
+      background: var(--danger-bg);
+    }
+
+    .status-box--info {
+      border-color: var(--info-line);
+      background: var(--info-bg);
+    }
+
+    #jobStatus {
+      color: var(--text);
+    }
+
+    #lastUpdated {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
     .bis-note-line {
+      margin-top: 16px;
       font-size: 0.93rem;
       line-height: 1.5;
       color: var(--muted);
     }
 
-    .bis-note-line {
-      margin-top: 10px;
-    }
-
     .bis-table-card {
       overflow: hidden;
+    }
+
+    .bis-table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fcfcfd;
+    }
+
+    .bis-table-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .bis-table-subtitle {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
     }
 
     .bis-table-wrap {
@@ -312,52 +586,53 @@
       min-width: 90px;
     }
 
+    .sortBtn {
       cursor: pointer;
-}
+      border: 1px solid rgba(0,0,0,.10);
+      background: #fff;
+      color: #111;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      transition: background .15s ease, border-color .15s ease, transform .05s ease;
+    }
 
+    .sortBtn:hover {
+      background: #f5f6f8;
+      border-color: rgba(0,0,0,.18);
+    }
 
-.sortBtn {
-  cursor: pointer;
-  border: 1px solid rgba(255,255,255,.28);
-  background: rgba(255,255,255,.08);
-  color: #fff;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .03em;
-  transition: background .15s ease, border-color .15s ease, transform .05s ease;
-}
+    .sortBtn:active {
+      transform: translateY(1px);
+    }
 
-.sortBtn:hover {
-  background: rgba(255,255,255,.16);
-  border-color: rgba(255,255,255,.5);
-}
+    .sortBtn.is-active {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
 
-.sortBtn:active {
-  transform: translateY(1px);
-}
-
-.sortBtn.is-active {
-  background: #fff;
-  color: #111;
-  border-color: #fff;
-}
     .bis-table a {
       font-weight: 600;
     }
 
-    @media (max-width: 1100px) {
+    .soft-muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 1180px) {
       .bis-top {
         grid-template-columns: 1fr;
       }
 
-      .nfd-brand {
-        margin-bottom: 4px;
-      }
-
       .nfd-logo {
         max-width: 170px;
+      }
+
+      .bis-helper-grid {
+        grid-template-columns: 1fr;
       }
 
       .bis-filters {
@@ -388,8 +663,13 @@
         grid-template-columns: 1fr;
       }
 
-      .bis-status-card {
+      .helper-step {
         grid-template-columns: 1fr;
+      }
+
+      .helper-step-number {
+        width: 36px;
+        height: 36px;
       }
 
       .bis-table {
@@ -421,84 +701,184 @@
               <div>
                 <h1 class="bis-title">Back In Stock Requests</h1>
                 <p class="bis-help">
-                  This tool uses cached back-in-stock data for faster loading. If the cache is empty or outdated, click
-                  <strong>Refresh BIS Data</strong>. While a refresh is running, the table may continue showing older data
-                  until the new cache is ready.
+                  Search cached back-in-stock request data by product, SKU, or variant. If the numbers look old, use
+                  <strong>Refresh BIS Data</strong>. If Omnisend data itself is stale, follow the Omnisend Sync Helper below.
                 </p>
               </div>
 
               <div class="nfd-toolbar">
-                <a class="nfd-btn nfd-btn--secondary" href="/">Home</a>
+                <a class="nfd-btn" href="/">Home</a>
                 <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
-                <a class="nfd-btn nfd-btn--secondary" href="/audit.html">Go to Audit</a>
+                <a class="nfd-btn" href="/audit.html">Go to Audit</a>
               </div>
             </div>
 
-            <div class="bis-filters">
-              <div class="bis-search">
-                <label for="q">Search</label>
-                <input id="q" placeholder="Search product, SKU, variant, or URL" />
-              </div>
-
-              <div>
-                <label for="variantFilter">Variant title</label>
-                <input id="variantFilter" placeholder="27, 28, 29, QTY..." />
-              </div>
-
-              <div>
-                <label for="minWaiting">Minimum waiting</label>
-                <input id="minWaiting" type="number" value="0" />
-              </div>
-            </div>
-
-            <div class="bis-actions">
-              <button id="refreshBtn" type="button" class="bis-refresh-btn">Refresh BIS Data</button>
-              <button id="searchBtn" type="button">Apply</button>
-              <button id="clearBtn" type="button">Clear</button>
-              <div id="status"></div>
-            </div>
-
-            <div class="bis-status-card" style="margin-top:14px;">
-  <label>Omnisend sync</label>
-<div>
-  <div class="bis-status-main">How to refresh Omnisend BIS data</div>
-
-  <div class="bis-status-help">
-
-    <strong>First time only:</strong><br>
-    <a id="installBookmark" href="#">Install Sync BIS Bookmark</a><br>
-    <span>Drag this link to your bookmarks bar, or open it and save it as a bookmark.</span>
-
-    <br><br>
-
-    <strong>To refresh data:</strong><br>
-    1. <a href="https://app.omnisend.com/reports/products" target="_blank" rel="noopener">Open Omnisend BIS Report</a> and wait for the page to fully load.<br>
-    2. Click your saved <strong>SYNC BIS BOOKMARK</strong> while on the Omnisend page. It might take 2 minutes to sync all data, don't close the page and wait for a confirmation pop-up.<br>
-    3. Return here — the dashboard will show the updated data.
-
-  </div>
-</div>
-            <div class="bis-status-card">
-              <label>Refresh status</label>
-              <div>
-                <div id="jobStatus" class="bis-status-main">Idle - OK</div>
-                <div class="bis-status-help">
-                  If a refresh is running, wait for it to finish. The table updates automatically when the new cache is ready.
+            <div class="bis-filters-card">
+              <div class="bis-filters-top">
+                <div>
+                  <h2 class="bis-filters-title">Filter results</h2>
+                  <p class="bis-filters-subtitle">Use one or more filters, then click Apply.</p>
                 </div>
               </div>
 
-              <label>Last updated</label>
-              <div id="lastUpdated">Never</div>
+              <div class="bis-filters">
+                <div class="bis-search">
+                  <label for="q">Search</label>
+                  <input id="q" placeholder="Product, SKU, variant, or URL" />
+                </div>
+
+                <div>
+                  <label for="variantFilter">Variant title</label>
+                  <input id="variantFilter" placeholder="27, 28, 29, XS, QTY..." />
+                </div>
+
+                <div>
+                  <label for="minWaiting">Minimum waiting</label>
+                  <input id="minWaiting" type="number" value="0" />
+                </div>
+              </div>
+
+              <div class="bis-actions">
+                <button id="refreshBtn" type="button" class="bis-refresh-btn">Refresh BIS Data</button>
+                <button id="searchBtn" type="button">Apply Filters</button>
+                <button id="clearBtn" type="button">Clear Filters</button>
+                <div id="status"></div>
+              </div>
+            </div>
+
+            <div class="bis-helper-grid">
+              <div class="helper-card helper-card--omnisend">
+                <div class="helper-head">
+                  <div>
+                    <h2 class="helper-title">Omnisend Sync Helper</h2>
+                    <p class="helper-subtitle">
+                      Use this only when Omnisend back-in-stock counts need to be pulled again from Omnisend.
+                    </p>
+                  </div>
+                  <div class="helper-pill">Manual step needed</div>
+                </div>
+
+                <div class="helper-alert">
+                  <strong>Important:</strong> This is different from clicking <strong>Refresh BIS Data</strong>.
+                  Omnisend must be synced first if you want fresh Omnisend counts.
+                </div>
+
+                <div class="helper-action-row">
+                  <a id="installBookmark" class="helper-btn helper-btn--primary" href="#">
+                    Install Sync Bookmark
+                  </a>
+                  <a
+                    class="helper-btn helper-btn--info"
+                    href="https://app.omnisend.com/reports/products"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Open Omnisend Report
+                  </a>
+                </div>
+
+                <div class="helper-steps">
+                  <div class="helper-step">
+                    <div class="helper-step-number">1</div>
+                    <div>
+                      <h3>Install the bookmark once</h3>
+                      <p>
+                        Click <strong>Install Sync Bookmark</strong>, then save it to your bookmarks bar.
+                        You only need to do this the first time.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="helper-step">
+                    <div class="helper-step-number">2</div>
+                    <div>
+                      <h3>Open the Omnisend Products Report</h3>
+                      <p>
+                        Open the Omnisend report page and <strong>wait until it fully loads</strong> before doing anything else.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="helper-step">
+                    <div class="helper-step-number">3</div>
+                    <div>
+                      <h3>Run your saved SYNC BIS BOOKMARK</h3>
+                      <p>
+                        Click the bookmark while you are on the Omnisend page. It can take around
+                        <strong>1 to 2 minutes</strong>. Do <strong>not</strong> close the page. Wait for the confirmation popup.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="helper-step">
+                    <div class="helper-step-number">4</div>
+                    <div>
+                      <h3>Come back here and refresh</h3>
+                      <p>
+                        After Omnisend finishes syncing, return to this page and click
+                        <strong>Refresh BIS Data</strong> to load the newest cache into the dashboard.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="helper-mini-note">
+                  Quick rule: <strong>Omnisend sync first</strong>, then <strong>Refresh BIS Data</strong> here.
+                </div>
+              </div>
+
+              <div class="status-card">
+                <div class="helper-head" style="margin-bottom:14px;">
+                  <div>
+                    <h2 class="helper-title">Current Status</h2>
+                    <p class="helper-subtitle">This area tells users if the dashboard is ready or waiting on data.</p>
+                  </div>
+                </div>
+
+                <div class="status-stack">
+                  <div class="status-box status-box--success">
+                    <div class="status-label">Refresh status</div>
+                    <div id="jobStatus" class="status-main">Idle - OK</div>
+                    <div class="status-help">
+                      If a refresh is running, let it finish before judging the numbers.
+                    </div>
+                  </div>
+
+                  <div class="status-box status-box--info">
+                    <div class="status-label">Last updated</div>
+                    <div id="lastUpdated">Never</div>
+                    <div class="status-help">
+                      This shows when the cache used by this page was last updated.
+                    </div>
+                  </div>
+
+                  <div class="status-box status-box--warning">
+                    <div class="status-label">When numbers look wrong</div>
+                    <div class="status-main">Do these 2 checks</div>
+                    <div class="status-help">
+                      1. Run the Omnisend Sync Helper if Omnisend data is stale.<br>
+                      2. Then click <strong>Refresh BIS Data</strong> on this page.
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="bis-note-line">
-              Tip: scroll horizontally to view all columns on smaller screens.
+              Tip: on smaller screens, scroll horizontally to view all table columns.
             </div>
           </div>
         </div>
       </section>
 
       <section class="bis-table-card">
+        <div class="bis-table-toolbar">
+          <div>
+            <h2 class="bis-table-title">Requests Table</h2>
+            <p class="bis-table-subtitle">Sort columns to find the most requested products faster.</p>
+          </div>
+        </div>
+
         <div class="bis-table-wrap">
           <table class="bis-table" id="tbl">
             <thead>
