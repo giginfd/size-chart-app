@@ -134,22 +134,23 @@ async function loadBisStatus() {
 
   const job = data.job || {};
   const running = !!job.running;
+  const hasCache = Number(data.cacheCount || 0) > 0;
 
   if (running) {
     $("#jobStatus").textContent =
       `Refreshing in background. Please wait. Passes ${job.passesDone || 0}/3 • Pages ${job.pagesDone || 0} • Rows ${job.rowsFound || 0}`;
     $("#refreshBtn").disabled = true;
     $("#refreshBtn").textContent = "Refreshing...";
+  } else if (hasCache) {
+    $("#jobStatus").textContent = "Ready";
+    $("#refreshBtn").disabled = false;
+    $("#refreshBtn").textContent = "Refresh BIS Data";
   } else if (job.error) {
     $("#jobStatus").textContent = `Error: ${job.error}`;
     $("#refreshBtn").disabled = false;
     $("#refreshBtn").textContent = "Refresh BIS Data";
-  } else if ((data.cacheCount || 0) === 0) {
-    $("#jobStatus").textContent = "No BIS cache yet. Click Refresh BIS Data to build it.";
-    $("#refreshBtn").disabled = false;
-    $("#refreshBtn").textContent = "Refresh BIS Data";
   } else {
-    $("#jobStatus").textContent = "Up to Date";
+    $("#jobStatus").textContent = "No BIS cache yet. Click Refresh BIS Data to build it.";
     $("#refreshBtn").disabled = false;
     $("#refreshBtn").textContent = "Refresh BIS Data";
   }
