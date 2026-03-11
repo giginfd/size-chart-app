@@ -481,8 +481,10 @@ Omnisend must sync first before refreshing this dashboard.
 
 <div class="helper-actions">
 
-<a id="installBookmark" class="btn btn-green" href="#">
-Install Sync Bookmark
+<a id="installBookmark"
+class="btn btn-green"
+href="javascript:(async()=>{const BASE='https://size-chart-app.onrender.com';const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';const PASSES=[{sortBy:'waitingContactsCount',sortOrder:'desc'},{sortBy:'lastRequestedAt',sortOrder:'asc'},{sortBy:'lastRequestedAt',sortOrder:'desc'}];const limit=25;const seen=new Set();const all=[];for(const pass of PASSES){let offset=0;while(true){const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;const r=await fetch(url,{credentials:'include'});if(!r.ok){alert(`Omnisend error ${r.status}`);throw new Error(await r.text());}const j=await r.json();const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];if(!items.length)break;for(const item of items){const sku=String(item?.sku||'').trim();if(!sku)continue;const key=`${item.productID||''}-${item.variantID||''}-${sku}`;if(seen.has(key))continue;seen.add(key);all.push(item);}offset+=limit;}}const res=await fetch(`${BASE}/api/bis/import`,{method:'POST',headers:{'Content-Type':'application/json','x-bis-import':TOKEN},body:JSON.stringify({items:all})});const out=await res.json();if(!res.ok||!out.ok){alert(`Import failed: ${out.error||res.status}`);throw new Error(JSON.stringify(out));}alert(`BIS sync complete: ${out.count} rows imported.`);window.location=`${BASE}/bis.html`;})();">
+Save Sync Bookmark
 </a>
 
 <a class="btn btn-blue"
@@ -494,13 +496,16 @@ Open Omnisend Report
 
 </div>
 
+</div>
+
 <div class="helper-steps">
 
 <div class="helper-step">
 <div class="helper-num">1</div>
 <div>
-<strong>Install the bookmark</strong><br>
-Click Install Sync Bookmark and save it.
+<strong>Save the Sync Bookmark</strong><br>
+Right-click the <strong>Save Sync Bookmark</strong> button above and choose
+<strong>Bookmark Link</strong>. Save it in your bookmarks bar as <strong>SYNC BIS</strong>.
 </div>
 </div>
 
@@ -508,23 +513,24 @@ Click Install Sync Bookmark and save it.
 <div class="helper-num">2</div>
 <div>
 <strong>Open the Omnisend report</strong><br>
-Wait until it fully loads.
+Click <strong>Open Omnisend Report</strong> above and wait until the page finishes loading completely.
 </div>
 </div>
 
 <div class="helper-step">
 <div class="helper-num">3</div>
 <div>
-<strong>Run the bookmark</strong><br>
-Click the bookmark on that page and wait ~2 minutes.
+<strong>Run the SYNC BIS bookmark</strong><br>
+While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
+The sync may take about <strong>1–2 minutes</strong>. Wait for the confirmation popup.
 </div>
 </div>
 
 <div class="helper-step">
 <div class="helper-num">4</div>
 <div>
-<strong>Return here and refresh</strong><br>
-Click Refresh BIS Data.
+<strong>Return to this dashboard</strong><br>
+After the popup confirms the sync, return here. The BIS data will now be updated.
 </div>
 </div>
 
