@@ -6,579 +6,930 @@
 <title>Back In Stock Requests</title>
 
 <style>
-
 :root{
---bg:#f6f7f9;
---card:#ffffff;
---text:#111;
---muted:#5f6368;
---line:#e3e6ea;
---accent:#111;
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --text:#111111;
+  --muted:#5f6368;
+  --line:#e3e6ea;
+  --line-strong:#d7dbe0;
+  --accent:#111111;
 
---success-bg:#edf8f0;
---success-border:#b7dfbf;
+  --success:#1f7a39;
+  --success-bg:#edf8f0;
+  --success-border:#b7dfbf;
 
---warning-bg:#fff7e8;
---warning-border:#f1d08a;
+  --warning:#9a6700;
+  --warning-bg:#fff7e8;
+  --warning-border:#f1d08a;
 
---info-bg:#f4f7ff;
---info-border:#c9d4ff;
+  --danger:#b42318;
+  --danger-bg:#fff1f1;
+  --danger-border:#efb7b2;
 
---radius:12px;
+  --info:#3157b7;
+  --info-bg:#f4f7ff;
+  --info-border:#c9d4ff;
+
+  --radius:12px;
+  --shadow:0 1px 2px rgba(16,24,40,.04);
 }
 
 *{box-sizing:border-box;}
 
+html{font-size:16px;}
+
 body{
-margin:0;
-font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-background:var(--bg);
-color:var(--text);
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
 .bis-wrap{
-width:min(100% - 32px,1680px);
-margin:24px auto 40px;
+  width:min(100% - 32px,1680px);
+  margin:24px auto 40px;
 }
 
 .bis-shell{
-display:grid;
-gap:18px;
+  display:grid;
+  gap:18px;
 }
 
 .bis-card{
-background:var(--card);
-border:1px solid var(--line);
-border-radius:var(--radius);
-padding:20px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:20px;
+  box-shadow:var(--shadow);
 }
 
 .bis-top{
-display:grid;
-grid-template-columns:220px 1fr;
-gap:24px;
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:24px;
+  align-items:start;
 }
 
 .nfd-logo{
-max-width:190px;
+  max-width:190px;
+  width:100%;
+  height:auto;
+  display:block;
 }
 
 .bis-title{
-font-size:1.8rem;
-margin:0 0 6px;
-font-weight:700;
+  font-size:1.8rem;
+  margin:0 0 6px;
+  font-weight:700;
+  letter-spacing:-.02em;
 }
 
 .bis-help{
-color:var(--muted);
-max-width:900px;
+  color:var(--muted);
+  max-width:900px;
+  line-height:1.55;
+  margin:0;
 }
 
 .bis-filters{
-display:grid;
-grid-template-columns:2fr 1fr 180px;
-gap:14px;
-margin-top:20px;
+  display:grid;
+  grid-template-columns:2fr 1fr 180px;
+  gap:14px;
+  margin-top:20px;
 }
 
 label{
-font-size:12px;
-text-transform:uppercase;
-font-weight:700;
-letter-spacing:.04em;
-color:var(--muted);
-display:block;
-margin-bottom:6px;
+  font-size:12px;
+  text-transform:uppercase;
+  font-weight:700;
+  letter-spacing:.04em;
+  color:var(--muted);
+  display:block;
+  margin-bottom:6px;
 }
 
 input{
-width:100%;
-height:44px;
-border:1px solid var(--line);
-border-radius:8px;
-padding:0 12px;
-font-size:.95rem;
+  width:100%;
+  height:48px;
+  border:1px solid var(--line-strong);
+  border-radius:10px;
+  padding:0 14px;
+  font-size:.98rem;
+  background:#fff;
+  color:var(--text);
+}
+
+input:focus{
+  outline:none;
+  border-color:#111;
+  box-shadow:0 0 0 3px rgba(17,17,17,.08);
 }
 
 .bis-actions{
-margin-top:14px;
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-align-items:center;
+  margin-top:16px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.bis-action-group{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.bis-search-group{
+  padding-right:12px;
+  margin-right:2px;
+  border-right:1px solid var(--line);
 }
 
 button,
 .btn{
-height:40px;
-padding:0 14px;
-border-radius:8px;
-border:1px solid var(--line);
-background:#fff;
-font-weight:600;
-cursor:pointer;
-text-decoration:none;
-display:inline-flex;
-align-items:center;
+  min-height:42px;
+  padding:0 14px;
+  border-radius:10px;
+  border:1px solid var(--line-strong);
+  background:#fff;
+  color:var(--text);
+  font-weight:700;
+  font-size:.95rem;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .04s ease;
 }
 
 button:hover,
 .btn:hover{
-background:#f3f4f6;
+  background:#f3f4f6;
+}
+
+button:active,
+.btn:active{
+  transform:translateY(1px);
+}
+
+.bis-search-btn{
+  background:#111;
+  color:#fff;
+  border-color:#111;
+}
+
+.bis-search-btn:hover{
+  background:#222;
+  border-color:#222;
+}
+
+.bis-clear-btn{
+  background:#fff;
 }
 
 .bis-refresh{
-background:#111;
-color:#fff;
-border-color:#111;
+  background:var(--warning-bg);
+  color:#6f4a00;
+  border-color:var(--warning-border);
+}
+
+.bis-refresh:hover{
+  background:#ffefcc;
+  border-color:#e2bf63;
+}
+
+.bis-refresh-icon{
+  font-size:1rem;
+  line-height:1;
 }
 
 .btn-green{
-background:#e6f4ea;
-border-color:#b7dfbf;
+  background:#e6f4ea;
+  border-color:#b7dfbf;
+  color:#11632c;
 }
 
 .btn-blue{
-background:#eef3ff;
-border-color:#c9d4ff;
+  background:#eef3ff;
+  border-color:#c9d4ff;
+  color:#3b4db4;
 }
 
 #status{
-font-size:.9rem;
-color:var(--muted);
+  font-size:.96rem;
+  color:var(--muted);
+  min-height:24px;
+}
+
+.bis-status-count{
+  font-weight:600;
+  color:var(--muted);
+}
+
+.bis-refresh-note{
+  font-size:.87rem;
+  color:var(--muted);
+  margin-top:8px;
 }
 
 /* accordion */
 
 .bis-accordion{
-border:1px solid var(--line);
-border-radius:12px;
-overflow:hidden;
-margin-top:16px;
-background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  margin-top:16px;
+  background:#fff;
+}
+
+.bis-accordion[open]{
+  box-shadow:var(--shadow);
 }
 
 .bis-accordion summary{
-cursor:pointer;
-padding:16px 18px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:#f9fafb;
-list-style:none;
+  cursor:pointer;
+  padding:16px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  background:#f9fafb;
+  list-style:none;
 }
 
 .bis-accordion summary::-webkit-details-marker{
-display:none;
+  display:none;
+}
+
+.bis-accordion-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
 }
 
 .bis-accordion-title{
-font-weight:700;
+  font-weight:700;
+  font-size:1rem;
 }
 
 .bis-accordion-sub{
-font-size:.9rem;
-color:var(--muted);
-margin-top:3px;
+  font-size:.94rem;
+  color:var(--muted);
+  margin-top:3px;
+  line-height:1.45;
 }
 
 .bis-accordion-content{
-padding:18px;
-border-top:1px solid var(--line);
+  padding:18px;
+  border-top:1px solid var(--line);
 }
-  .bis-accordion-toggle{
-display:inline-flex;
-align-items:center;
-gap:8px;
-flex:0 0 auto;
-color:var(--muted);
-font-size:.9rem;
-font-weight:600;
+
+.bis-accordion-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+  color:var(--muted);
+  font-size:.9rem;
+  font-weight:700;
 }
 
 .bis-accordion-toggle-text{
-line-height:1;
+  line-height:1;
 }
 
 .bis-accordion-toggle-collapse{
-display:none;
+  display:none;
 }
 
 .bis-accordion[open] .bis-accordion-toggle-expand{
-display:none;
+  display:none;
 }
 
 .bis-accordion[open] .bis-accordion-toggle-collapse{
-display:inline;
+  display:inline;
 }
 
 .bis-accordion-chevron{
-width:10px;
-height:10px;
-border-right:2px solid #111;
-border-bottom:2px solid #111;
-transform:rotate(45deg);
-margin-top:-2px;
-transition:transform .18s ease;
+  width:10px;
+  height:10px;
+  border-right:2px solid #111;
+  border-bottom:2px solid #111;
+  transform:rotate(45deg);
+  margin-top:-2px;
+  transition:transform .18s ease;
 }
 
 .bis-accordion[open] .bis-accordion-chevron{
-transform:rotate(-135deg);
-margin-top:4px;
+  transform:rotate(-135deg);
+  margin-top:4px;
+}
+
+.status-preview{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:30px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--line-strong);
+  background:#fff;
+  color:var(--muted);
+  font-size:.84rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.status-preview-dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#9aa0a6;
+  flex:0 0 auto;
+}
+
+.status-preview.is-ready{
+  background:var(--success-bg);
+  border-color:var(--success-border);
+  color:var(--success);
+}
+
+.status-preview.is-ready .status-preview-dot{
+  background:var(--success);
+}
+
+.status-preview.is-running,
+.status-preview.is-waiting{
+  background:var(--warning-bg);
+  border-color:var(--warning-border);
+  color:var(--warning);
+}
+
+.status-preview.is-running .status-preview-dot,
+.status-preview.is-waiting .status-preview-dot{
+  background:var(--warning);
+}
+
+.status-preview.is-error{
+  background:var(--danger-bg);
+  border-color:var(--danger-border);
+  color:var(--danger);
+}
+
+.status-preview.is-error .status-preview-dot{
+  background:var(--danger);
 }
 
 /* status boxes */
 
 .status-box{
-border-radius:10px;
-padding:14px;
-border:1px solid var(--line);
-margin-bottom:12px;
+  border-radius:10px;
+  padding:14px;
+  border:1px solid var(--line);
+  margin-bottom:12px;
+}
+
+.status-box:last-child{
+  margin-bottom:0;
 }
 
 .status-success{
-background:var(--success-bg);
-border-color:var(--success-border);
+  background:var(--success-bg);
+  border-color:var(--success-border);
 }
 
 .status-warning{
-background:var(--warning-bg);
-border-color:var(--warning-border);
+  background:var(--warning-bg);
+  border-color:var(--warning-border);
+}
+
+.status-danger{
+  background:var(--danger-bg);
+  border-color:var(--danger-border);
 }
 
 .status-info{
-background:var(--info-bg);
-border-color:var(--info-border);
+  background:var(--info-bg);
+  border-color:var(--info-border);
 }
 
 .status-label{
-font-size:.75rem;
-font-weight:700;
-text-transform:uppercase;
-letter-spacing:.04em;
-color:var(--muted);
-margin-bottom:4px;
+  font-size:.75rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--muted);
+  margin-bottom:4px;
 }
 
 .status-main{
-font-weight:700;
+  font-weight:700;
+  line-height:1.35;
+}
+
+.status-copy{
+  margin-top:4px;
+  color:#454b52;
+  line-height:1.5;
+  font-size:.95rem;
 }
 
 /* helper steps */
 
-.helper-steps{
-display:grid;
-gap:12px;
-margin-top:10px;
-}
-
-.helper-step{
-display:grid;
-grid-template-columns:36px 1fr;
-gap:12px;
-padding:12px;
-border:1px solid var(--line);
-border-radius:10px;
-}
-
-.helper-num{
-width:36px;
-height:36px;
-background:#111;
-color:#fff;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:700;
-}
-
 .helper-alert{
-background:#fff7e8;
-border:1px solid #f1d08a;
-padding:12px;
-border-radius:10px;
-margin-bottom:14px;
+  background:#fff7e8;
+  border:1px solid #f1d08a;
+  padding:12px 14px;
+  border-radius:10px;
+  margin-bottom:14px;
+  line-height:1.5;
 }
 
 .helper-actions{
-display:flex;
-gap:10px;
-margin-bottom:14px;
-flex-wrap:wrap;
+  display:flex;
+  gap:10px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+
+.helper-steps{
+  display:grid;
+  gap:12px;
+  margin-top:10px;
+}
+
+.helper-step{
+  display:grid;
+  grid-template-columns:36px 1fr;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+}
+
+.helper-num{
+  width:36px;
+  height:36px;
+  background:#111;
+  color:#fff;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+
+.helper-step strong{
+  font-size:1.02rem;
+}
+
+.helper-step-copy{
+  margin-top:2px;
+  color:#40464d;
+  line-height:1.45;
 }
 
 /* table */
 
 .bis-table-wrap{
-overflow:auto;
-max-height:70vh;
+  overflow:auto;
+  max-height:70vh;
 }
 
 table{
-width:100%;
-min-width:1200px;
-border-collapse:collapse;
+  width:100%;
+  min-width:1200px;
+  border-collapse:collapse;
 }
 
 th{
-background:#f3f4f6;
-text-align:left;
-font-size:.8rem;
-text-transform:uppercase;
-padding:12px;
-border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#f3f4f6;
+  text-align:left;
+  font-size:.8rem;
+  text-transform:uppercase;
+  padding:14px 12px;
+  border-bottom:1px solid var(--line);
+  letter-spacing:.03em;
 }
 
 td{
-padding:12px;
-border-bottom:1px solid var(--line);
+  padding:14px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+
+tbody tr:hover td{
+  background:#fafbfc;
 }
 
 .sortBtn{
-cursor:pointer;
-border:0;
-background:none;
-font-weight:700;
+  cursor:pointer;
+  border:0;
+  background:none;
+  font-weight:700;
+  padding:0;
 }
 
 @media(max-width:1000px){
+  .bis-top{
+    grid-template-columns:1fr;
+  }
 
-.bis-top{
-grid-template-columns:1fr;
+  .bis-filters{
+    grid-template-columns:1fr;
+  }
+
+  .bis-actions{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .bis-action-group{
+    width:100%;
+  }
+
+  .bis-search-group{
+    border-right:0;
+    padding-right:0;
+    margin-right:0;
+  }
+
+  .bis-search-group button,
+  .bis-refresh-group button{
+    flex:1 1 auto;
+  }
 }
 
-.bis-filters{
-grid-template-columns:1fr;
-}
+@media(max-width:720px){
+  .bis-wrap{
+    width:min(100% - 20px,1680px);
+    margin:12px auto 24px;
+  }
 
-}
+  .bis-card{
+    padding:16px;
+  }
 
+  .bis-title{
+    font-size:1.5rem;
+  }
+
+  .bis-accordion summary{
+    padding:14px 16px;
+  }
+
+  .bis-accordion-content{
+    padding:16px;
+  }
+
+  .helper-step{
+    grid-template-columns:1fr;
+  }
+
+  .status-preview{
+    display:none;
+  }
+}
 </style>
 </head>
 
 <body>
 
 <div class="bis-wrap">
-<div class="bis-shell">
+  <div class="bis-shell">
 
-<section class="bis-card">
+    <section class="bis-card">
 
-<div class="bis-top">
+      <div class="bis-top">
 
-<div>
-<img class="nfd-logo"
-src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280">
-</div>
+        <div>
+          <img
+            class="nfd-logo"
+            src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
+            alt="Naked & Famous Denim"
+          >
+        </div>
 
-<div>
+        <div>
 
-<h1 class="bis-title">Back In Stock Requests</h1>
+          <h1 class="bis-title">Back In Stock Requests</h1>
 
-<p class="bis-help">
-Search cached back-in-stock data by product, SKU, or variant.
-If numbers look outdated click <strong>Refresh BIS Data</strong>.
-</p>
+          <p class="bis-help">
+            Search cached back-in-stock data by product, SKU, or variant. Use <strong>Search</strong> to filter results.
+            Use <strong>Refresh BIS Data</strong> only when you need to rebuild the dashboard data.
+          </p>
 
-<div class="bis-filters">
+          <div class="bis-filters">
 
-<div>
-<label>Search</label>
-<input id="q" placeholder="Product, SKU, variant or URL">
-</div>
+            <div>
+              <label for="q">Search</label>
+              <input id="q" placeholder="Product, SKU, variant or URL">
+            </div>
 
-<div>
-<label>Variant</label>
-<input id="variantFilter" placeholder="27, 28, XS…">
-</div>
+            <div>
+              <label for="variantFilter">Variant</label>
+              <input id="variantFilter" placeholder="27, 28, XS…">
+            </div>
 
-<div>
-<label>Minimum waiting</label>
-<input id="minWaiting" type="number" value="0">
-</div>
+            <div>
+              <label for="minWaiting">Minimum waiting</label>
+              <input id="minWaiting" type="number" value="0">
+            </div>
 
-</div>
+          </div>
 
-<div class="bis-actions">
+          <div class="bis-actions">
 
-<button id="refreshBtn" class="bis-refresh">Refresh BIS Data</button>
-<button id="searchBtn">Apply</button>
-<button id="clearBtn">Clear</button>
+            <div class="bis-action-group bis-search-group">
+              <button id="searchBtn" class="bis-search-btn" type="button">Search</button>
+              <button id="clearBtn" class="bis-clear-btn" type="button">Clear Filters</button>
+            </div>
 
-<div id="status"></div>
+            <div class="bis-action-group bis-refresh-group">
+              <button id="refreshBtn" class="bis-refresh" type="button">
+                <span class="bis-refresh-icon" aria-hidden="true">↻</span>
+                <span>Refresh BIS Data</span>
+              </button>
+            </div>
 
-</div>
+            <div id="status" aria-live="polite"></div>
 
+          </div>
 
-<!-- STATUS ACCORDION -->
+          <div class="bis-refresh-note">
+            Refresh is separate from search. Use it only when dashboard data needs to be updated.
+          </div>
 
-<details class="bis-accordion" open>
+          <!-- STATUS ACCORDION -->
 
-<summary>
+          <details class="bis-accordion">
 
-<div>
-<div class="bis-accordion-title">Current Status</div>
-<div class="bis-accordion-sub">Shows if the dashboard is ready.</div>
-</div>
+            <summary>
 
-<div class="bis-accordion-toggle" aria-hidden="true">
-<span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
-<span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
-<span class="bis-accordion-chevron"></span>
-</div>
+              <div class="bis-accordion-head">
+                <div>
+                  <div class="bis-accordion-title">Current Status</div>
+                  <div class="bis-accordion-sub">Shows whether the dashboard is ready, refreshing, or needs attention.</div>
+                </div>
+                <div id="statusPreview" class="status-preview is-waiting" aria-live="polite">
+                  <span class="status-preview-dot"></span>
+                  <span id="statusPreviewText">Waiting</span>
+                </div>
+              </div>
 
-</summary>
+              <div class="bis-accordion-toggle" aria-hidden="true">
+                <span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
+                <span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
+                <span class="bis-accordion-chevron"></span>
+              </div>
 
-<div class="bis-accordion-content">
+            </summary>
 
-<div class="status-box status-success">
-<div class="status-label">Refresh status</div>
-<div id="jobStatus" class="status-main">Idle - OK</div>
-<div>If refresh is running, wait for it to finish.</div>
-</div>
+            <div class="bis-accordion-content">
 
-<div class="status-box status-info">
-<div class="status-label">Last Updated</div>
-<div id="lastUpdated">Never</div>
-</div>
+              <div id="refreshStatusCard" class="status-box status-warning">
+                <div class="status-label">Refresh status</div>
+                <div id="jobStatus" class="status-main">Waiting for status</div>
+                <div class="status-copy">This area updates when the dashboard checks the cache or runs a refresh.</div>
+              </div>
 
-<div class="status-box status-warning">
-<div class="status-label">When numbers look wrong</div>
-<div class="status-main">Do these two checks</div>
-<div>
-1. Run Omnisend Sync Helper<br>
-2. Click Refresh BIS Data here
-</div>
-</div>
+              <div class="status-box status-info">
+                <div class="status-label">Last updated</div>
+                <div id="lastUpdated" class="status-main">Never</div>
+                <div class="status-copy">This shows when the cache used by this page was last updated.</div>
+              </div>
 
-</div>
+              <div class="status-box status-warning">
+                <div class="status-label">If numbers look wrong</div>
+                <div class="status-main">Do these 2 checks</div>
+                <div class="status-copy">
+                  1. Run the Omnisend Sync Helper if Omnisend data is stale.<br>
+                  2. Then click <strong>Refresh BIS Data</strong> to reload the dashboard cache.
+                </div>
+              </div>
 
-</details>
+            </div>
 
-<details class="bis-accordion">
+          </details>
 
-<summary>
+          <details class="bis-accordion">
 
-<div>
-<div class="bis-accordion-title">Omnisend Sync Helper</div>
-<div class="bis-accordion-sub">Use only when Omnisend counts need refreshing.</div>
-</div>
+            <summary>
 
-<div class="bis-accordion-toggle" aria-hidden="true">
-<span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
-<span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
-<span class="bis-accordion-chevron"></span>
-</div>
+              <div>
+                <div class="bis-accordion-title">Omnisend Sync Helper</div>
+                <div class="bis-accordion-sub">Use only when Omnisend counts need refreshing.</div>
+              </div>
 
-</summary>
+              <div class="bis-accordion-toggle" aria-hidden="true">
+                <span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
+                <span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
+                <span class="bis-accordion-chevron"></span>
+              </div>
 
-<div class="bis-accordion-content">
+            </summary>
 
-<div class="helper-alert">
-<strong>Important:</strong>
-Omnisend must sync first before refreshing this dashboard.
-</div>
+            <div class="bis-accordion-content">
 
-<div class="helper-actions">
+              <div class="helper-alert">
+                <strong>Important:</strong> Omnisend must sync first before refreshing this dashboard.
+              </div>
 
-<a id="installBookmark"
-class="btn btn-green"
-href="javascript:(async()=>{const BASE='https://size-chart-app.onrender.com';const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';const PASSES=[{sortBy:'waitingContactsCount',sortOrder:'desc'},{sortBy:'lastRequestedAt',sortOrder:'asc'},{sortBy:'lastRequestedAt',sortOrder:'desc'}];const limit=25;const seen=new Set();const all=[];for(const pass of PASSES){let offset=0;while(true){const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;const r=await fetch(url,{credentials:'include'});if(!r.ok){alert(`Omnisend error ${r.status}`);throw new Error(await r.text());}const j=await r.json();const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];if(!items.length)break;for(const item of items){const sku=String(item?.sku||'').trim();if(!sku)continue;const key=`${item.productID||''}-${item.variantID||''}-${sku}`;if(seen.has(key))continue;seen.add(key);all.push(item);}offset+=limit;}}const res=await fetch(`${BASE}/api/bis/import`,{method:'POST',headers:{'Content-Type':'application/json','x-bis-import':TOKEN},body:JSON.stringify({items:all})});const out=await res.json();if(!res.ok||!out.ok){alert(`Import failed: ${out.error||res.status}`);throw new Error(JSON.stringify(out));}alert(`BIS sync complete: ${out.count} rows imported.`);window.location=`${BASE}/bis.html`;})();">
-BIS Synch - Save Bookmark
-</a>
+              <div class="helper-actions">
 
-<a class="btn btn-blue"
-href="https://app.omnisend.com/reports/products"
-target="_blank"
-rel="noopener">
-Open Omnisend Report
-</a>
+                <a id="installBookmark"
+                  class="btn btn-green"
+                  href="javascript:(async()=>{const BASE='https://size-chart-app.onrender.com';const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';const PASSES=[{sortBy:'waitingContactsCount',sortOrder:'desc'},{sortBy:'lastRequestedAt',sortOrder:'asc'},{sortBy:'lastRequestedAt',sortOrder:'desc'}];const limit=25;const seen=new Set();const all=[];for(const pass of PASSES){let offset=0;while(true){const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;const r=await fetch(url,{credentials:'include'});if(!r.ok){alert(`Omnisend error ${r.status}`);throw new Error(await r.text());}const j=await r.json();const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];if(!items.length)break;for(const item of items){const sku=String(item?.sku||'').trim();if(!sku)continue;const key=`${item.productID||''}-${item.variantID||''}-${sku}`;if(seen.has(key))continue;seen.add(key);all.push(item);}offset+=limit;}}const res=await fetch(`${BASE}/api/bis/import`,{method:'POST',headers:{'Content-Type':'application/json','x-bis-import':TOKEN},body:JSON.stringify({items:all})});const out=await res.json();if(!res.ok||!out.ok){alert(`Import failed: ${out.error||res.status}`);throw new Error(JSON.stringify(out));}alert(`BIS sync complete: ${out.count} rows imported.`);window.location=`${BASE}/bis.html`;})();">
+                  BIS Sync Bookmark
+                </a>
 
-</div>
+                <a class="btn btn-blue"
+                  href="https://app.omnisend.com/reports/products"
+                  target="_blank"
+                  rel="noopener">
+                  Open Omnisend Report
+                </a>
 
-</div>
+              </div>
 
-<div class="helper-step">
-<div class="helper-num">1</div>
-<div>
-<strong>Save the Sync Bookmark</strong><br>
-Drag the <strong>Save Sync Bookmark</strong> button above to your
-<strong>Bookmarks Bar</strong>.  
-If the bookmarks bar is hidden, press <strong>⌘ + Shift + B</strong> (Mac) or
-<strong>Ctrl + Shift + B</strong> (Windows).
-</div>
-</div>
+              <div class="helper-steps">
 
-<div class="helper-step">
-<div class="helper-num">2</div>
-<div>
-<strong>Open the Omnisend report</strong><br>
-Click <strong>Open Omnisend Report</strong> above and wait until the page finishes loading completely.
-</div>
-</div>
+                <div class="helper-step">
+                  <div class="helper-num">1</div>
+                  <div>
+                    <strong>Save the sync bookmark</strong>
+                    <div class="helper-step-copy">
+                      Drag the <strong>BIS Sync Bookmark</strong> button above to your <strong>Bookmarks Bar</strong>.
+                      If the bookmarks bar is hidden, press <strong>⌘ + Shift + B</strong> (Mac) or <strong>Ctrl + Shift + B</strong> (Windows).
+                    </div>
+                  </div>
+                </div>
 
-<div class="helper-step">
-<div class="helper-num">3</div>
-<div>
-<strong>Run the SYNC BIS bookmark</strong><br>
-While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
-The sync may take about <strong>1–2 minutes</strong>. Wait for the confirmation popup.
-</div>
-</div>
+                <div class="helper-step">
+                  <div class="helper-num">2</div>
+                  <div>
+                    <strong>Open the Omnisend report</strong>
+                    <div class="helper-step-copy">
+                      Click <strong>Open Omnisend Report</strong> above and wait until the page finishes loading completely.
+                    </div>
+                  </div>
+                </div>
 
-<div class="helper-step">
-<div class="helper-num">4</div>
-<div>
-<strong>Return to this dashboard</strong><br>
-After the popup confirms the sync, return here. The BIS data will now be updated.
-</div>
-</div>
+                <div class="helper-step">
+                  <div class="helper-num">3</div>
+                  <div>
+                    <strong>Run the SYNC BIS bookmark</strong>
+                    <div class="helper-step-copy">
+                      While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
+                      The sync may take about <strong>1–2 minutes</strong>. Wait for the confirmation popup.
+                    </div>
+                  </div>
+                </div>
 
-</div>
+                <div class="helper-step">
+                  <div class="helper-num">4</div>
+                  <div>
+                    <strong>Return to this dashboard</strong>
+                    <div class="helper-step-copy">
+                      After the popup confirms the sync, return here. The BIS data will now be updated.
+                    </div>
+                  </div>
+                </div>
 
-</div>
+              </div>
 
-</details>
+            </div>
 
-</div>
-</div>
+          </details>
 
-</section>
+        </div>
+      </div>
 
+    </section>
 
-<section class="bis-card">
+    <section class="bis-card">
 
-<div class="bis-table-wrap">
+      <div class="bis-table-wrap">
 
-<table id="tbl">
+        <table id="tbl">
 
-<thead>
-<tr>
+          <thead>
+            <tr>
+              <th><button class="sortBtn" data-sort="productTitle" type="button">Product</button></th>
+              <th><button class="sortBtn" data-sort="variantTitle" type="button">Variant</button></th>
+              <th><button class="sortBtn" data-sort="sku" type="button">SKU</button></th>
+              <th><button class="sortBtn" data-sort="omnisendCount" type="button">Omnisend</button></th>
+              <th><button class="sortBtn" data-sort="ampCount" type="button">AMP</button></th>
+              <th><button class="sortBtn" data-sort="totalCount" type="button">Total</button></th>
+              <th><button class="sortBtn" data-sort="lastRequestedAt" type="button">Last Requested</button></th>
+              <th>Link</th>
+            </tr>
+          </thead>
 
-<th><button class="sortBtn" data-sort="productTitle">Product</button></th>
-<th><button class="sortBtn" data-sort="variantTitle">Variant</button></th>
-<th><button class="sortBtn" data-sort="sku">SKU</button></th>
-<th><button class="sortBtn" data-sort="omnisendCount">Omnisend</button></th>
-<th><button class="sortBtn" data-sort="ampCount">AMP</button></th>
-<th><button class="sortBtn" data-sort="totalCount">Total</button></th>
-<th><button class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
-<th>Link</th>
+          <tbody id="tbody"></tbody>
 
-</tr>
-</thead>
+        </table>
 
-<tbody id="tbody"></tbody>
+      </div>
 
-</table>
+    </section>
 
-</div>
-
-</section>
-
-</div>
+  </div>
 </div>
 
 <script src="/bis.js"></script>
+
+<script>
+(function(){
+  const jobStatus = document.getElementById('jobStatus');
+  const preview = document.getElementById('statusPreview');
+  const previewText = document.getElementById('statusPreviewText');
+  const refreshStatusCard = document.getElementById('refreshStatusCard');
+
+  if (!jobStatus || !preview || !previewText || !refreshStatusCard) return;
+
+  function applyStatusState(rawText){
+    const text = String(rawText || '').trim();
+    const lower = text.toLowerCase();
+
+    preview.classList.remove('is-ready','is-running','is-waiting','is-error');
+    refreshStatusCard.classList.remove('status-success','status-warning','status-danger','status-info');
+
+    let shortText = 'Waiting';
+    let cardClass = 'status-warning';
+    let previewClass = 'is-waiting';
+
+    if (!text || lower === 'never') {
+      shortText = 'Waiting';
+      cardClass = 'status-warning';
+      previewClass = 'is-waiting';
+    } else if (
+      lower.includes('idle - ok') ||
+      lower.includes('ready') ||
+      lower.includes('complete') ||
+      lower.includes('completed') ||
+      lower.includes('finished') ||
+      lower.includes('success') ||
+      lower.includes('up to date')
+    ) {
+      shortText = 'Ready';
+      cardClass = 'status-success';
+      previewClass = 'is-ready';
+    } else if (
+      lower.includes('running') ||
+      lower.includes('refreshing') ||
+      lower.includes('building') ||
+      lower.includes('processing') ||
+      lower.includes('in progress')
+    ) {
+      shortText = 'Refreshing';
+      cardClass = 'status-warning';
+      previewClass = 'is-running';
+    } else if (
+      lower.includes('error') ||
+      lower.includes('failed') ||
+      lower.includes('fail')
+    ) {
+      shortText = 'Error';
+      cardClass = 'status-danger';
+      previewClass = 'is-error';
+    } else if (
+      lower.includes('no bis cache') ||
+      lower.includes('click refresh') ||
+      lower.includes('missing') ||
+      lower.includes('not ready')
+    ) {
+      shortText = 'Needs refresh';
+      cardClass = 'status-warning';
+      previewClass = 'is-waiting';
+    } else {
+      shortText = text;
+      cardClass = 'status-info';
+    }
+
+    preview.classList.add(previewClass);
+    refreshStatusCard.classList.add(cardClass);
+    previewText.textContent = shortText;
+  }
+
+  applyStatusState(jobStatus.textContent);
+
+  const observer = new MutationObserver(function(){
+    applyStatusState(jobStatus.textContent);
+  });
+
+  observer.observe(jobStatus, { childList:true, subtree:true, characterData:true });
+})();
+</script>
 
 </body>
 </html>
