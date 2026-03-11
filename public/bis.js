@@ -52,7 +52,17 @@ function row(item) {
   const url = item.url || "";
   return `
     <tr>
-      <td>${escapeHtml(item.productTitle || "")}</td>
+     <td>
+  <button
+    type="button"
+    class="productLink"
+    data-product-id="${escapeHtml(item.productID || "")}"
+    data-product-title="${escapeHtml(item.productTitle || "")}"
+    style="border:0;background:none;padding:0;margin:0;color:#111;text-decoration:underline;cursor:pointer;font:inherit;text-align:left;"
+  >
+    ${escapeHtml(item.productTitle || "")}
+  </button>
+</td>
       <td>${escapeHtml(item.variantTitle || "")}</td>
 <td>${escapeHtml(item.sku || "")}</td>
 <td>${escapeHtml(item.omnisendCount ?? 0)}</td>
