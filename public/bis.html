@@ -862,8 +862,7 @@ try{
 for(const pass of PASSES){
 
 let offset=0;
-updateBox(`Fetching ${pass.sortBy}...`);
-
+updateBox(`Fetching ${pass.sortBy}...`,5);
 while(true){
 
 const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;
@@ -895,14 +894,12 @@ all.push(item);
 
 offset+=limit;
 
-updateBox(`Fetched ${all.length.toLocaleString()} rows...`);
-
+updateBox(`Fetched ${all.length.toLocaleString()} rows...`,55);
 }
 
 }
 
-updateBox(`Uploading ${all.length.toLocaleString()} rows to dashboard...`);
-
+updateBox(`Uploading ${all.length.toLocaleString()} rows to dashboard...`,80);
 const res=await fetch(`${BASE}/api/bis/import`,{
 method:'POST',
 headers:{
@@ -915,13 +912,12 @@ body:JSON.stringify({items:all})
 const out=await res.json();
 
 if(!res.ok||!out.ok){
-updateBox(`Import failed`);
-alert(`Import failed: ${out.error||res.status}`);
+updateBox(`Import failed`,100);
+             alert(`Import failed: ${out.error||res.status}`);
 throw new Error(JSON.stringify(out));
 }
 
-updateBox(`BIS sync complete: ${out.count} rows`);
-
+updateBox(`BIS sync complete: ${out.count} rows`,100);
 setTimeout(()=>{
 window.location=`${BASE}/bis.html`;
 },1200);
@@ -929,8 +925,8 @@ window.location=`${BASE}/bis.html`;
 }catch(e){
 
 console.error(e);
-updateBox('BIS sync failed');
-alert('BIS sync failed. Check console.');
+updateBox('BIS sync failed',100);
+              alert('BIS sync failed. Check console.');
 
 }
 
