@@ -186,6 +186,46 @@ margin-top:3px;
 padding:18px;
 border-top:1px solid var(--line);
 }
+  .bis-accordion-toggle{
+display:inline-flex;
+align-items:center;
+gap:8px;
+flex:0 0 auto;
+color:var(--muted);
+font-size:.9rem;
+font-weight:600;
+}
+
+.bis-accordion-toggle-text{
+line-height:1;
+}
+
+.bis-accordion-toggle-collapse{
+display:none;
+}
+
+.bis-accordion[open] .bis-accordion-toggle-expand{
+display:none;
+}
+
+.bis-accordion[open] .bis-accordion-toggle-collapse{
+display:inline;
+}
+
+.bis-accordion-chevron{
+width:10px;
+height:10px;
+border-right:2px solid #111;
+border-bottom:2px solid #111;
+transform:rotate(45deg);
+margin-top:-2px;
+transition:transform .18s ease;
+}
+
+.bis-accordion[open] .bis-accordion-chevron{
+transform:rotate(-135deg);
+margin-top:4px;
+}
 
 /* status boxes */
 
@@ -381,6 +421,12 @@ If numbers look outdated click <strong>Refresh BIS Data</strong>.
 <div class="bis-accordion-sub">Shows if the dashboard is ready.</div>
 </div>
 
+<div class="bis-accordion-toggle" aria-hidden="true">
+<span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
+<span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
+<span class="bis-accordion-chevron"></span>
+</div>
+
 </summary>
 
 <div class="bis-accordion-content">
@@ -408,82 +454,6 @@ If numbers look outdated click <strong>Refresh BIS Data</strong>.
 </div>
 
 </details>
-
-
-<!-- OMNISEND HELPER -->
-
-<details class="bis-accordion">
-
-<summary>
-
-<div>
-<div class="bis-accordion-title">Omnisend Sync Helper</div>
-<div class="bis-accordion-sub">Use only when Omnisend counts need refreshing.</div>
-</div>
-
-</summary>
-
-<div class="bis-accordion-content">
-
-<div class="helper-alert">
-<strong>Important:</strong>
-Omnisend must sync first before refreshing this dashboard.
-</div>
-
-<div class="helper-actions">
-
-<a id="installBookmark" class="btn btn-green" href="#">
-Install Sync Bookmark
-</a>
-
-<a class="btn btn-blue"
-href="https://app.omnisend.com/reports/products"
-target="_blank">
-Open Omnisend Report
-</a>
-
-</div>
-
-<div class="helper-steps">
-
-<div class="helper-step">
-<div class="helper-num">1</div>
-<div>
-<strong>Install the bookmark</strong><br>
-Click Install Sync Bookmark and save it.
-</div>
-</div>
-
-<div class="helper-step">
-<div class="helper-num">2</div>
-<div>
-<strong>Open the Omnisend report</strong><br>
-Wait until it fully loads.
-</div>
-</div>
-
-<div class="helper-step">
-<div class="helper-num">3</div>
-<div>
-<strong>Run the bookmark</strong><br>
-Click the bookmark on that page and wait ~2 minutes.
-</div>
-</div>
-
-<div class="helper-step">
-<div class="helper-num">4</div>
-<div>
-<strong>Return here and refresh</strong><br>
-Click Refresh BIS Data.
-</div>
-</div>
-
-</div>
-
-</div>
-
-</details>
-
 </div>
 </div>
 
