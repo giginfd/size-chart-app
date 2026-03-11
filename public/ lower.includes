@@ -344,6 +344,15 @@ button:active,
   font-weight:700;
   white-space:nowrap;
 }
+  .status-preview.is-running{
+  background:var(--info-bg);
+  border-color:var(--info-border);
+  color:var(--info);
+}
+
+.status-preview.is-running .status-preview-dot{
+  background:var(--info);
+}
 
 .status-preview-dot{
   width:8px;
@@ -370,7 +379,13 @@ button:active,
   color:var(--warning);
 }
 
-.status-preview.is-running .status-preview-dot,
+
+.status-preview.is-waiting{
+  background:var(--warning-bg);
+  border-color:var(--warning-border);
+  color:var(--warning);
+}
+
 .status-preview.is-waiting .status-preview-dot{
   background:var(--warning);
 }
@@ -784,26 +799,18 @@ tbody tr:hover td{
                   </div>
                 </div>
 
-                <div class="helper-step">
-                  <div class="helper-num">3</div>
-                  <div>
-                    <strong>Run the SYNC BIS bookmark</strong>
-                    <div class="helper-step-copy">
-                      While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
-                      The sync may take about <strong>1–2 minutes</strong>. Wait for the confirmation popup.
-                    </div>
-                  </div>
-                </div>
+             <div class="helper-step">
+  <div class="helper-num">3</div>
+  <div>
+    <strong>Run the SYNC BIS bookmark</strong>
+    <div class="helper-step-copy">
+      While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
+      The sync may take about <strong>1–2 minutes</strong>. Wait until you see the confirmation popup, you will be sent back to this BIS page automatically.  If needed, wait a moment for the latest data to load.
+    </div>
+  </div>
+</div>
 
-                <div class="helper-step">
-                  <div class="helper-num">4</div>
-                  <div>
-                    <strong>Return to this dashboard</strong>
-                    <div class="helper-step-copy">
-                      After the popup confirms the sync, return here. The BIS data will now be updated.
-                    </div>
-                  </div>
-                </div>
+              
 
               </div>
 
@@ -885,16 +892,17 @@ tbody tr:hover td{
       cardClass = 'status-success';
       previewClass = 'is-ready';
     } else if (
-      lower.includes('running') ||
-      lower.includes('refreshing') ||
-      lower.includes('building') ||
-      lower.includes('processing') ||
-      lower.includes('in progress')
-    ) {
-      shortText = 'Refreshing';
-      cardClass = 'status-warning';
-      previewClass = 'is-running';
-    } else if (
+  lower.includes('running') ||
+  lower.includes('refreshing') ||
+  lower.includes('building') ||
+  lower.includes('processing') ||
+  lower.includes('in progress')
+) {
+  shortText = 'Refreshing';
+  cardClass = 'status-info';
+  previewClass = 'is-running';
+}
+      else if (
       lower.includes('error') ||
       lower.includes('failed') ||
       lower.includes('fail')
