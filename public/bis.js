@@ -73,6 +73,50 @@ function row(item) {
     </tr>
   `;
 }
+function getProductRows(item) {
+  const productId = String(item.productID || "").trim();
+  const productTitle = String(item.productTitle || "").trim();
+
+  return ALL.filter((row) => {
+    const rowProductId = String(row.productID || "").trim();
+    const rowProductTitle = String(row.productTitle || "").trim();
+
+    if (productId && rowProductId) {
+      return rowProductId === productId;
+    }
+
+    return rowProductTitle === productTitle;
+  });
+}
+
+function openProductModal(item) {
+  const rows = getProductRows(item).sort((a, b) => Number(b.totalCount || 0) - Number(a.totalCount || 0));
+
+  const omnisendTotal = rows.reduce((sum, r) => sum + Number(r.omnisendCount || 0), 0);
+  const ampTotal = rows.reduce((sum, r) => sum + Number(r.ampCount || 0), 0);
+  const total = rows.reduce((sum, r) => sum + Number(r.totalCount || 0), 0);
+
+  $("#productModalTitle").textContent = item.productTitle || "Product";
+  $("#productModalSummary").textContent =
+    `${rows.length} variants with demand • Omnisend ${omnisendTotal} • AMP ${ampTotal} • Total ${total}`;
+
+  $("#productModalBody").innerHTML = rows.map((row) => `
+    <tr>
+      <td>${escapeHtml(row.variantTitle || "")}</td>
+      <td>${escapeHtml(row.sku || "")}</td>
+      <td>${escapeHtml(row.omnisendCount ?? 0)}</td>
+      <td>${escapeHtml(row.ampCount ?? 0)}</td>
+      <td><strong>${escapeHtml(row.totalCount ?? 0)}</strong></td>
+      <td>${escapeHtml(fmtDate(row.lastRequestedAt || ""))}</td>
+    </tr>
+  `).join("");
+
+  $("#productModal").style.display = "flex";
+}
+
+function closeProductModal() {
+  $("#productModal").style.display = "none";
+}
 function updateSortButtons() {
   document.querySelectorAll(".sortBtn").forEach((btn) => {
     const key = btn.dataset.sort;
@@ -230,3 +274,24 @@ $("#refreshBtn").addEventListener("click", refreshBisData);
 loadBisData();
 loadBisStatus();
 startPolling();
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".productLink");
+  if (!btn) return;
+
+  const productId = btn.dataset.productId || "";
+  const productTitle = btn.dataset.productTitle || "";
+
+  const item = ALL.find((row) => {
+    if (productId && row.productID) return String(row.productID) === productId;
+    return String(row.productTitle || "") === productTitle;
+  });
+
+  if (item) openProductModal(item);
+});
+
+$("#productModalClose").addEventListener("click", closeProductModal);
+
+$("#productModal").addEventListener("click", (e) => {
+  if (e.target.id === "productModal") closeProductModal();
+});
