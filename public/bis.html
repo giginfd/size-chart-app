@@ -60,19 +60,19 @@ body{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
-  padding:20px;
+  padding:16px;
   box-shadow:var(--shadow);
 }
 
 .bis-top{
   display:grid;
-  grid-template-columns:220px 1fr;
-  gap:24px;
+  grid-template-columns:190px 1fr;
+  gap:18px;
   align-items:start;
 }
 
 .nfd-logo{
-  max-width:190px;
+  max-width:160px;
   width:100%;
   height:auto;
   display:block;
@@ -88,15 +88,16 @@ body{
 .bis-help{
   color:var(--muted);
   max-width:900px;
-  line-height:1.55;
+  line-height:1.4;
   margin:0;
+  font-size:.95rem;
 }
 
 .bis-filters{
   display:grid;
-  grid-template-columns:2fr 1fr 180px;
-  gap:14px;
-  margin-top:20px;
+  grid-template-columns:minmax(280px,1.5fr) minmax(180px,.8fr) 140px;
+  gap:10px;
+  margin-top:14px;
 }
 
 label{
@@ -111,15 +112,14 @@ label{
 
 input{
   width:100%;
-  height:48px;
+  height:42px;
   border:1px solid var(--line-strong);
   border-radius:10px;
-  padding:0 14px;
-  font-size:.98rem;
+  padding:0 12px;
+  font-size:.94rem;
   background:#fff;
   color:var(--text);
 }
-
 input:focus{
   outline:none;
   border-color:#111;
@@ -127,13 +127,17 @@ input:focus{
 }
 
 .bis-actions{
-  margin-top:16px;
+  margin-top:10px;
   display:flex;
-  gap:12px;
+  gap:10px;
   flex-wrap:wrap;
   align-items:center;
 }
-
+.bis-refresh-note{
+  font-size:.84rem;
+  color:var(--muted);
+  margin-top:6px;
+}
 .bis-action-group{
   display:flex;
   gap:10px;
@@ -230,11 +234,7 @@ button:active,
   color:var(--muted);
 }
 
-.bis-refresh-note{
-  font-size:.87rem;
-  color:var(--muted);
-  margin-top:8px;
-}
+
 
 /* accordion */
 
