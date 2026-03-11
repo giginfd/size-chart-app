@@ -894,7 +894,53 @@ td:nth-child(2){
 
   </div>
 </div>
+<!-- PRODUCT DEMAND MODAL -->
+<div id="productModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+">
 
+  <div style="
+    background:#fff;
+    width:min(1100px,92vw);
+    max-height:85vh;
+    overflow:auto;
+    border-radius:12px;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    padding:22px;
+  ">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 id="productModalTitle" style="margin:0;font-size:1.4rem;"></h2>
+      <button id="productModalClose" style="font-size:1.2rem;">Close</button>
+    </div>
+
+    <div id="productModalSummary" style="margin-bottom:16px;color:#555;"></div>
+
+    <div style="overflow:auto;">
+      <table id="productModalTable" style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>SKU</th>
+            <th>Omnisend</th>
+            <th>AMP</th>
+            <th>Total</th>
+            <th>Last Requested</th>
+          </tr>
+        </thead>
+        <tbody id="productModalBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
 <script src="/bis.js"></script>
 
 <script>
