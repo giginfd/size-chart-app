@@ -825,22 +825,34 @@ box.style.position='fixed';
 box.style.bottom='20px';
 box.style.right='20px';
 box.style.zIndex='999999';
+box.style.width='340px';
 box.style.background='#111';
 box.style.color='#fff';
-box.style.padding='14px 18px';
-box.style.borderRadius='10px';
+box.style.padding='16px';
+box.style.borderRadius='12px';
 box.style.fontSize='14px';
 box.style.fontFamily='system-ui';
-box.style.boxShadow='0 8px 20px rgba(0,0,0,.25)';
+box.style.boxShadow='0 10px 28px rgba(0,0,0,.28)';
 box.id='bisSyncBox';
-box.innerText='Starting BIS sync...';
+box.innerHTML=`
+  <div style="font-weight:700;margin-bottom:8px;">Syncing BIS Data</div>
+  <div id="bisSyncMsg" style="line-height:1.45;margin-bottom:10px;">Starting BIS sync...</div>
+  <div style="height:10px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden;">
+    <div id="bisSyncBar" style="height:100%;width:0%;background:#7dd3fc;"></div>
+  </div>
+  <div id="bisSyncMeta" style="margin-top:8px;font-size:12px;opacity:.8;">0%</div>
+`;
 document.body.appendChild(box);
 return box;
 }
 
-function updateBox(msg){
-const box=document.getElementById('bisSyncBox');
-if(box) box.innerText=msg;
+function updateBox(msg,pct){
+const msgEl=document.getElementById('bisSyncMsg');
+const barEl=document.getElementById('bisSyncBar');
+const metaEl=document.getElementById('bisSyncMeta');
+if(msgEl) msgEl.innerText=msg;
+if(barEl && typeof pct==='number') barEl.style.width=`${Math.max(0,Math.min(100,pct))}%`;
+if(metaEl && typeof pct==='number') metaEl.innerText=`${Math.round(pct)}%`;
 }
 
 const box=makeBox();
