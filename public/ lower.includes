@@ -553,7 +553,49 @@ tbody tr:hover td{
   font-weight:700;
   padding:0;
 }
+.metric{
+  text-align:center;
+  font-weight:600;
+  font-size:1rem;
+}
 
+.metric-total{
+  font-weight:700;
+  font-size:1.05rem;
+}
+
+.metric-low{
+  opacity:.65;
+}
+
+.metric-high{
+  color:#0a7a33;
+}
+
+.metric-medium{
+  color:#a16b00;
+}
+
+.metric-hot{
+  color:#b42318;
+}
+
+th:nth-child(4),
+th:nth-child(5),
+th:nth-child(6),
+td:nth-child(4),
+td:nth-child(5),
+td:nth-child(6){
+  text-align:center;
+}
+td:nth-child(6){
+  background:#fafafa;
+  font-weight:700;
+}
+td:nth-child(2){
+  color:#6b7280;
+  font-weight:500;
+}
 @media(max-width:1000px){
   .bis-top{
     grid-template-columns:1fr;
