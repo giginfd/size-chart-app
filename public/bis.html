@@ -802,7 +802,9 @@ td:nth-child(2){
               </div>
 
               <div class="helper-actions">
-
+<button id="installBookmarkBtn" class="btn btn-green" type="button">
+Install Sync BIS Bookmark
+</button>
                
 
                 <a class="btn btn-blue"
@@ -937,6 +939,90 @@ td:nth-child(2){
   </div>
 
 </div>
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const btn = document.getElementById("installBookmarkBtn");
+  if (!btn) return;
+
+  const bookmarkCode = `javascript:(async()=>{
+const BASE='https://size-chart-app.onrender.com';
+const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';
+
+const PASSES=[
+{sortBy:'waitingContactsCount',sortOrder:'desc'},
+{sortBy:'lastRequestedAt',sortOrder:'asc'},
+{sortBy:'lastRequestedAt',sortOrder:'desc'}
+];
+
+const limit=25;
+const seen=new Set();
+const all=[];
+
+for(const pass of PASSES){
+let offset=0;
+while(true){
+
+const url=\`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=\${limit}&offset=\${offset}&sortBy=\${pass.sortBy}&sortOrder=\${pass.sortOrder}\`;
+
+const r=await fetch(url,{credentials:'include'});
+const j=await r.json();
+const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];
+
+if(!items.length) break;
+
+for(const item of items){
+const sku=String(item?.sku||'').trim();
+if(!sku) continue;
+
+const key=\`\${item.productID||''}-\${item.variantID||''}-\${sku}\`;
+if(seen.has(key)) continue;
+
+seen.add(key);
+all.push(item);
+}
+
+offset+=limit;
+}
+}
+
+const res=await fetch(\`\${BASE}/api/bis/import\`,{
+method:'POST',
+headers:{
+'Content-Type':'application/json',
+'x-bis-import':TOKEN
+},
+body:JSON.stringify({items:all})
+});
+
+const out=await res.json();
+
+alert(\`BIS sync complete: \${out.count} rows imported.\`);
+
+window.location=\`\${BASE}/bis.html\`;
+
+})();`;
+
+  btn.addEventListener("click", function () {
+
+    const a = document.createElement("a");
+    a.href = bookmarkCode;
+    a.innerText = "SYNC BIS";
+    a.style.display = "inline-block";
+    a.style.padding = "8px 12px";
+    a.style.background = "#111";
+    a.style.color = "#fff";
+    a.style.borderRadius = "6px";
+    a.style.marginTop = "10px";
+
+    alert("Drag the 'SYNC BIS' link that will appear to your bookmarks bar.");
+
+    btn.parentNode.appendChild(a);
+
+  });
+
+});
+</script>
 <script src="/bis.js"></script>
 
 <script>
