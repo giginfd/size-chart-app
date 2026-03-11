@@ -805,7 +805,124 @@ td:nth-child(2){
 
                 <a id="installBookmark"
                   class="btn btn-green"
-                  href="javascript:(async()=>{const BASE='https://size-chart-app.onrender.com';const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';const PASSES=[{sortBy:'waitingContactsCount',sortOrder:'desc'},{sortBy:'lastRequestedAt',sortOrder:'asc'},{sortBy:'lastRequestedAt',sortOrder:'desc'}];const limit=25;const seen=new Set();const all=[];for(const pass of PASSES){let offset=0;while(true){const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;const r=await fetch(url,{credentials:'include'});if(!r.ok){alert(`Omnisend error ${r.status}`);throw new Error(await r.text());}const j=await r.json();const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];if(!items.length)break;for(const item of items){const sku=String(item?.sku||'').trim();if(!sku)continue;const key=`${item.productID||''}-${item.variantID||''}-${sku}`;if(seen.has(key))continue;seen.add(key);all.push(item);}offset+=limit;}}const res=await fetch(`${BASE}/api/bis/import`,{method:'POST',headers:{'Content-Type':'application/json','x-bis-import':TOKEN},body:JSON.stringify({items:all})});const out=await res.json();if(!res.ok||!out.ok){alert(`Import failed: ${out.error||res.status}`);throw new Error(JSON.stringify(out));}alert(`BIS sync complete: ${out.count} rows imported.`);window.location=`${BASE}/bis.html`;})();">
+                  href="javascript:(async()=>{
+const BASE='https://size-chart-app.onrender.com';
+const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';
+
+const PASSES=[
+{sortBy:'waitingContactsCount',sortOrder:'desc'},
+{sortBy:'lastRequestedAt',sortOrder:'asc'},
+{sortBy:'lastRequestedAt',sortOrder:'desc'}
+];
+
+const limit=25;
+const seen=new Set();
+const all=[];
+
+function makeBox(){
+const box=document.createElement('div');
+box.style.position='fixed';
+box.style.bottom='20px';
+box.style.right='20px';
+box.style.zIndex='999999';
+box.style.background='#111';
+box.style.color='#fff';
+box.style.padding='14px 18px';
+box.style.borderRadius='10px';
+box.style.fontSize='14px';
+box.style.fontFamily='system-ui';
+box.style.boxShadow='0 8px 20px rgba(0,0,0,.25)';
+box.id='bisSyncBox';
+box.innerText='Starting BIS sync...';
+document.body.appendChild(box);
+return box;
+}
+
+function updateBox(msg){
+const box=document.getElementById('bisSyncBox');
+if(box) box.innerText=msg;
+}
+
+const box=makeBox();
+
+try{
+
+for(const pass of PASSES){
+
+let offset=0;
+updateBox(`Fetching ${pass.sortBy}...`);
+
+while(true){
+
+const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;
+
+const r=await fetch(url,{credentials:'include'});
+
+if(!r.ok){
+updateBox(`Omnisend error ${r.status}`);
+throw new Error(await r.text());
+}
+
+const j=await r.json();
+const items=Array.isArray(j.requestedProducts)?j.requestedProducts:[];
+
+if(!items.length) break;
+
+for(const item of items){
+
+const sku=String(item?.sku||'').trim();
+if(!sku) continue;
+
+const key=`${item.productID||''}-${item.variantID||''}-${sku}`;
+if(seen.has(key)) continue;
+
+seen.add(key);
+all.push(item);
+
+}
+
+offset+=limit;
+
+updateBox(`Fetched ${all.length.toLocaleString()} rows...`);
+
+}
+
+}
+
+updateBox(`Uploading ${all.length.toLocaleString()} rows to dashboard...`);
+
+const res=await fetch(`${BASE}/api/bis/import`,{
+method:'POST',
+headers:{
+'Content-Type':'application/json',
+'x-bis-import':TOKEN
+},
+body:JSON.stringify({items:all})
+});
+
+const out=await res.json();
+
+if(!res.ok||!out.ok){
+updateBox(`Import failed`);
+alert(`Import failed: ${out.error||res.status}`);
+throw new Error(JSON.stringify(out));
+}
+
+updateBox(`BIS sync complete: ${out.count} rows`);
+
+setTimeout(()=>{
+window.location=`${BASE}/bis.html`;
+},1200);
+
+}catch(e){
+
+console.error(e);
+updateBox('BIS sync failed');
+alert('BIS sync failed. Check console.');
+
+}
+
+})();">
                   BIS Sync Bookmark
                 </a>
 
