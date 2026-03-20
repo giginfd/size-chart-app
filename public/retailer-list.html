@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Retailer List Test</title>
+</head>
+<body>
+  <h1>Retailer PDF Test</h1>
+
+  <form id="form">
+    <input type="file" name="pdf" accept="application/pdf" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    const form = document.getElementById("form");
+    const output = document.getElementById("output");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fd = new FormData(form);
+      output.textContent = "Loading...";
+
+      const res = await fetch("/api/retailer-list/preview", {
+        method: "POST",
+        body: fd,
+      });
+
+      const json = await res.json();
+      output.textContent = JSON.stringify(json, null, 2);
+    });
+  </script>
+</body>
+</html>
