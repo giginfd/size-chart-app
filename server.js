@@ -1,7 +1,13 @@
 require("dotenv").config();
+const pdfParse = require("pdf-parse");
 const express = require("express");
 const path = require("path");
 const multer = require("multer");
+const retailerUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
 
 const SHOP_DOMAIN = process.env.SHOP_DOMAIN;
 const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
@@ -461,6 +467,36 @@ app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
     res.status(500).json({ ok: false, error: String(e.message || e) });
   }
 });
+app.post(
+  "/api/retailer-list/preview",
+  retailerUpload.single("pdf"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Missing PDF file" });
+      }
+
+      const data = await pdfParse(req.file.buffer);
+      const text = data.text || "";
+
+      const lines = text
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+
+      return res.json({
+        ok: true,
+        totalLines: lines.length,
+        preview: lines.slice(0, 120),
+      });
+    } catch (err) {
+      return res.status(500).json({
+        ok: false,
+        error: err.message,
+      });
+    }
+  }
+);
 
 // ===============================
 // SIZE CHART AUDIT API (paginated)
