@@ -1,27 +1,237 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Retailer List Test</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Retailer List Generator</title>
+  <link rel="stylesheet" href="/styles.css?v=1" />
+  <style>
+    .page-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
+    .back-link{
+      font-size:13px;
+      text-decoration:none;
+      border-bottom:1px dotted rgba(0,0,0,.35);
+      color:inherit;
+      padding-bottom:2px;
+    }
+
+    .tool-card{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:22px;
+      box-shadow:0 10px 26px rgba(0,0,0,.06);
+    }
+
+    .tool-title{
+      margin:0;
+      font-size:22px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .tool-subtitle{
+      margin-top:8px;
+      font-size:13px;
+      opacity:.75;
+      max-width:70ch;
+      line-height:1.4;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .row{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .row.full{
+      grid-column:1 / -1;
+    }
+
+    label{
+      font-size:12px;
+      opacity:.75;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    .btn{
+      border:1px solid rgba(0,0,0,.18);
+      padding:10px 12px;
+      border-radius:8px;
+      background:#fff;
+      cursor:pointer;
+      font-size:13px;
+    }
+
+    .btn:hover{
+      border-color:rgba(0,0,0,.4);
+    }
+
+    .btn-primary{
+      background:#1d1b1b;
+      color:#fff;
+      border-color:#1d1b1b;
+    }
+
+    .btn-primary:hover{
+      opacity:.92;
+    }
+
+    .panel{
+      margin-top:20px;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 10px 26px rgba(0,0,0,.04);
+    }
+
+    .panel h3{
+      margin:0 0 12px 0;
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    #output{
+      white-space:pre-wrap;
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .unknown-item,
+    .pending-item{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:10px;
+      padding:12px;
+      margin-bottom:10px;
+      background:#fafafa;
+    }
+
+    .unknown-label{
+      font-weight:600;
+      margin-bottom:8px;
+    }
+
+    .unknown-controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+
+    .pending-line{
+      margin-bottom:8px;
+      line-height:1.5;
+    }
+
+    .logo-wrap img{
+      width:80px;
+      height:auto;
+      display:block;
+    }
+
+    @media (max-width: 720px){
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Retailer PDF Test</h1>
+  <div class="wrap">
+    <div class="page-head">
+      <div class="logo-wrap">
+        <img src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280" alt="Naked & Famous Denim">
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <a class="back-link" href="/home.html">← Back to Internal Tools</a>
+        <h1 style="margin:0;">Retailer List Generator</h1>
+      </div>
+    </div>
 
-  <form id="form">
-    <input type="file" name="pdf" accept="application/pdf" required />
-    <button type="submit">Upload</button>
-  </form>
+    <div class="tool-card">
+      <h2 class="tool-title">Retailer List Generator</h2>
+      <p class="tool-subtitle">
+        Upload a PDF export and optionally a retailer CSV. The tool parses valid order rows,
+        matches retailers, resolves unknowns, and outputs a copy-ready stockist list.
+      </p>
 
-  <pre id="output"></pre>
+      <form id="form">
+        <div class="form-grid">
+          <div class="row">
+            <label>PDF export</label>
+            <input type="file" name="pdf" accept="application/pdf" required />
+          </div>
+
+          <div class="row">
+            <label>Retailer CSV</label>
+            <input type="file" name="retailers" accept=".csv,text/csv" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Generate List</button>
+          <button class="btn" id="copyBtn" type="button">Copy to clipboard</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>Generated Output</h3>
+      <div id="output"></div>
+    </div>
+
+    <div class="panel" id="unknownSection" style="display:none;"></div>
+
+    <div class="panel" id="pendingRetailers" style="display:none;"></div>
+  </div>
 
   <script>
     const form = document.getElementById("form");
     const output = document.getElementById("output");
+    const copyBtn = document.getElementById("copyBtn");
+    const unknownSection = document.getElementById("unknownSection");
+    const pendingRetailers = document.getElementById("pendingRetailers");
+
+    let lastFormData = null;
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const fd = new FormData(form);
-      output.textContent = "Loading...";
+      lastFormData = fd;
+
+      output.innerHTML = "Loading...";
+      output.dataset.copyText = "";
+      unknownSection.style.display = "none";
+      unknownSection.innerHTML = "";
+      pendingRetailers.style.display = "none";
+      pendingRetailers.innerHTML = "";
 
       const res = await fetch("/api/retailer-list/preview", {
         method: "POST",
@@ -29,8 +239,276 @@
       });
 
       const json = await res.json();
-      output.textContent = JSON.stringify(json, null, 2);
+
+      output.innerHTML = json.formattedHtml || `<pre>${JSON.stringify(json, null, 2)}</pre>`;
+      output.dataset.copyText = json.formattedText || "";
+
+      renderUnknowns(json);
+      loadPendingRetailers();
     });
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(output.dataset.copyText || output.innerText);
+        copyBtn.textContent = "Copied ✓";
+        setTimeout(() => {
+          copyBtn.textContent = "Copy to clipboard";
+        }, 1500);
+      } catch (err) {
+        alert("Copy failed");
+      }
+    });
+
+    function renderUnknowns(json) {
+      unknownSection.innerHTML = "";
+
+      if (!json.unknownRetailers || !json.unknownRetailers.length) {
+        unknownSection.style.display = "none";
+        return;
+      }
+
+      unknownSection.style.display = "block";
+
+      const title = document.createElement("h3");
+      title.textContent = "Resolve Unknown Retailers";
+      unknownSection.appendChild(title);
+
+      json.unknownRetailers.forEach((unknown) => {
+        const wrap = document.createElement("div");
+        wrap.className = "unknown-item";
+
+        const label = document.createElement("div");
+        label.className = "unknown-label";
+        label.textContent = unknown;
+
+        const controls = document.createElement("div");
+        controls.className = "unknown-controls";
+
+        const input = document.createElement("input");
+        const listId = `retailer-options-${Math.random().toString(36).slice(2)}`;
+        input.setAttribute("list", listId);
+        input.placeholder = "Search retailer...";
+        input.style.minWidth = "260px";
+
+        const datalist = document.createElement("datalist");
+        datalist.id = listId;
+
+        (json.retailerOptions || []).forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          datalist.appendChild(option);
+        });
+
+        const assignBtn = document.createElement("button");
+        assignBtn.type = "button";
+        assignBtn.className = "btn";
+        assignBtn.textContent = "Assign";
+
+        assignBtn.addEventListener("click", async () => {
+          const selectedRetailer = input.value.trim();
+          if (!selectedRetailer) {
+            alert("Select a retailer first");
+            return;
+          }
+
+          const res = await fetch("/api/retailer-list/save-alias", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              unknownRetailer: unknown,
+              selectedRetailer
+            })
+          });
+
+          const saved = await res.json();
+          if (!saved.ok) {
+            alert(saved.error || "Save failed");
+            return;
+          }
+
+          await rerunPreview();
+        });
+
+        const newName = document.createElement("input");
+        newName.placeholder = "New retailer name";
+        newName.style.minWidth = "220px";
+
+        const newUrl = document.createElement("input");
+        newUrl.placeholder = "Website URL";
+        newUrl.style.minWidth = "220px";
+
+        const newCountry = document.createElement("input");
+        newCountry.placeholder = "Country";
+        newCountry.style.minWidth = "160px";
+
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "btn";
+        addBtn.textContent = "Add new retailer";
+
+        addBtn.addEventListener("click", async () => {
+          const name = newName.value.trim();
+          const url = newUrl.value.trim();
+          const country = newCountry.value.trim();
+
+          if (!name) {
+            alert("Enter a retailer name");
+            return;
+          }
+
+          if (!country) {
+            alert("Enter a country");
+            return;
+          }
+
+          const res = await fetch("/api/retailer-list/add-retailer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              unknownRetailer: unknown,
+              name,
+              url,
+              country
+            })
+          });
+
+          const created = await res.json();
+          if (!created.ok) {
+            alert(created.error || "Could not add retailer");
+            return;
+          }
+
+          await rerunPreview();
+        });
+
+        controls.appendChild(input);
+        controls.appendChild(datalist);
+        controls.appendChild(assignBtn);
+        controls.appendChild(newName);
+        controls.appendChild(newUrl);
+        controls.appendChild(newCountry);
+        controls.appendChild(addBtn);
+
+        wrap.appendChild(label);
+        wrap.appendChild(controls);
+        unknownSection.appendChild(wrap);
+      });
+    }
+
+    async function rerunPreview() {
+      if (!lastFormData) return;
+
+      const rerun = await fetch("/api/retailer-list/preview", {
+        method: "POST",
+        body: lastFormData
+      });
+
+      const rerunJson = await rerun.json();
+      output.innerHTML = rerunJson.formattedHtml || `<pre>${JSON.stringify(rerunJson, null, 2)}</pre>`;
+      output.dataset.copyText = rerunJson.formattedText || "";
+      renderUnknowns(rerunJson);
+      loadPendingRetailers();
+    }
+
+    async function loadPendingRetailers() {
+      pendingRetailers.innerHTML = "";
+
+      const res = await fetch("/api/retailer-list/custom-retailers");
+      const json = await res.json();
+
+      if (!json.ok || !json.items || !json.items.length) {
+        pendingRetailers.style.display = "none";
+        return;
+      }
+
+      const pending = json.items.filter((item) => !item.syncedToLocator);
+
+      if (!pending.length) {
+        pendingRetailers.style.display = "none";
+        return;
+      }
+
+      pendingRetailers.style.display = "block";
+
+      const title = document.createElement("h3");
+      title.textContent = "Pending Store Locator Entries";
+      pendingRetailers.appendChild(title);
+
+      pending.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "pending-item";
+
+        const text = document.createElement("div");
+        text.className = "pending-line";
+        text.textContent = `${item.name} | ${item.country} | ${item.url || ""}`;
+
+        const rowCopyBtn = document.createElement("button");
+        rowCopyBtn.type = "button";
+        rowCopyBtn.className = "btn";
+        rowCopyBtn.textContent = "Copy";
+
+    const markBtn = document.createElement("button");
+    markBtn.type = "button";
+    markBtn.className = "btn";
+    markBtn.style.marginLeft = "8px";
+    markBtn.textContent = "Mark synced";
+
+    markBtn.addEventListener("click", async () => {
+      const res = await fetch("/api/retailer-list/mark-synced", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: item.name })
+      });
+
+      const json = await res.json();
+      if (!json.ok) {
+        alert(json.error || "Could not mark as synced");
+        return;
+      }
+
+      loadPendingRetailers();
+    });
+
+
+        rowCopyBtn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(`${item.name},${item.country},${item.url || ""}`);
+          rowCopyBtn.textContent = "Copied ✓";
+          setTimeout(() => {
+            rowCopyBtn.textContent = "Copy";
+
+    const markBtn = document.createElement("button");
+    markBtn.type = "button";
+    markBtn.className = "btn";
+    markBtn.style.marginLeft = "8px";
+    markBtn.textContent = "Mark synced";
+
+    markBtn.addEventListener("click", async () => {
+      const res = await fetch("/api/retailer-list/mark-synced", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: item.name })
+      });
+
+      const json = await res.json();
+      if (!json.ok) {
+        alert(json.error || "Could not mark as synced");
+        return;
+      }
+
+      loadPendingRetailers();
+    });
+
+          }, 1200);
+        });
+
+        row.appendChild(text);
+        row.appendChild(rowCopyBtn);
+    row.appendChild(markBtn);
+        pendingRetailers.appendChild(row);
+      });
+    }
+
+    loadPendingRetailers();
   </script>
 </body>
 </html>

@@ -1,1136 +1,513 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Back In Stock Requests</title>
-
-<style>
-:root{
-  --bg:#f6f7f9;
-  --card:#ffffff;
-  --text:#111111;
-  --muted:#5f6368;
-  --line:#e3e6ea;
-  --line-strong:#d7dbe0;
-  --accent:#111111;
-
-  --success:#1f7a39;
-  --success-bg:#edf8f0;
-  --success-border:#b7dfbf;
-
-  --warning:#9a6700;
-  --warning-bg:#fff7e8;
-  --warning-border:#f1d08a;
-
-  --danger:#b42318;
-  --danger-bg:#fff1f1;
-  --danger-border:#efb7b2;
-
-  --info:#3157b7;
-  --info-bg:#f4f7ff;
-  --info-border:#c9d4ff;
-
-  --radius:12px;
-  --shadow:0 1px 2px rgba(16,24,40,.04);
-}
-
-*{box-sizing:border-box;}
-
-html{font-size:16px;}
-
-body{
-  margin:0;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-.bis-wrap{
-  width:min(100% - 32px,1680px);
-  margin:24px auto 40px;
-}
-
-.bis-shell{
-  display:grid;
-  gap:18px;
-}
-
-.bis-card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:16px;
-  box-shadow:var(--shadow);
-}
-
-.bis-top{
-  display:grid;
-  grid-template-columns:190px 1fr;
-  gap:18px;
-  align-items:start;
-}
-
-.nfd-logo{
-  max-width:160px;
-  width:100%;
-  height:auto;
-  display:block;
-}
-
-.bis-title{
-  font-size:1.4rem;
-  margin:0 0 6px;
-  font-weight:700;
-  letter-spacing:-.02em;
-}
-
-.bis-help{
-  color:var(--muted);
-  max-width:900px;
-  line-height:1.4;
-  margin:0;
-  font-size:.95rem;
-}
-
-.bis-filters{
-  display:grid;
-  grid-template-columns:minmax(280px,1.5fr) minmax(180px,.8fr) 140px;
-  gap:10px;
-  margin-top:14px;
-}
-
-label{
-  font-size:12px;
-  text-transform:uppercase;
-  font-weight:700;
-  letter-spacing:.04em;
-  color:var(--muted);
-  display:block;
-  margin-bottom:6px;
-}
-
-input{
-  width:100%;
-  height:42px;
-  border:1px solid var(--line-strong);
-  border-radius:10px;
-  padding:0 12px;
-  font-size:.94rem;
-  background:#fff;
-  color:var(--text);
-}
-input:focus{
-  outline:none;
-  border-color:#111;
-  box-shadow:0 0 0 3px rgba(17,17,17,.08);
-}
-
-.bis-actions{
-  margin-top:10px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-.bis-refresh-note{
-  font-size:.84rem;
-  color:var(--muted);
-  margin-top:6px;
-}
-.bis-action-group{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-
-.bis-search-group{
-  padding-right:12px;
-  margin-right:2px;
-  border-right:1px solid var(--line);
-}
-
-button,
-.btn{
-  min-height:42px;
-  padding:0 14px;
-  border-radius:10px;
-  border:1px solid var(--line-strong);
-  background:#fff;
-  color:var(--text);
-  font-weight:700;
-  font-size:.95rem;
-  cursor:pointer;
-  text-decoration:none;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .04s ease;
-}
-
-button:hover,
-.btn:hover{
-  background:#f3f4f6;
-}
-
-button:active,
-.btn:active{
-  transform:translateY(1px);
-}
-
-.bis-search-btn{
-  background:#111;
-  color:#fff;
-  border-color:#111;
-}
-
-.bis-search-btn:hover{
-  background:#222;
-  border-color:#222;
-}
-
-.bis-clear-btn{
-  background:#fff;
-}
-
-.bis-refresh{
-  background:var(--warning-bg);
-  color:#6f4a00;
-  border-color:var(--warning-border);
-}
-
-.bis-refresh:hover{
-  background:#ffefcc;
-  border-color:#e2bf63;
-}
-
-.bis-refresh-icon{
-  font-size:1rem;
-  line-height:1;
-}
-
-.btn-green{
-  background:#e6f4ea;
-  border-color:#b7dfbf;
-  color:#11632c;
-}
-
-.btn-blue{
-  background:#eef3ff;
-  border-color:#c9d4ff;
-  color:#3b4db4;
-}
-
-#status{
-  font-size:.96rem;
-  color:var(--muted);
-  min-height:24px;
-}
-
-.bis-status-count{
-  font-weight:600;
-  color:var(--muted);
-}
-
-
-
-/* accordion */
-
-.bis-accordion{
-  border:1px solid var(--line);
-  border-radius:12px;
-  overflow:hidden;
-  margin-top:16px;
-  background:#fff;
-}
-
-.bis-accordion[open]{
-  box-shadow:var(--shadow);
-}
-
-.bis-accordion summary{
-  cursor:pointer;
-  padding:16px 18px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:16px;
-  background:#f9fafb;
-  list-style:none;
-}
-
-.bis-accordion summary::-webkit-details-marker{
-  display:none;
-}
-
-.bis-accordion-head{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  min-width:0;
-}
-
-.bis-accordion-title{
-  font-weight:700;
-  font-size:1rem;
-}
-
-.bis-accordion-sub{
-  font-size:.94rem;
-  color:var(--muted);
-  margin-top:3px;
-  line-height:1.45;
-}
-
-.bis-accordion-content{
-  padding:18px;
-  border-top:1px solid var(--line);
-}
-
-.bis-accordion-toggle{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  flex:0 0 auto;
-  color:var(--muted);
-  font-size:.9rem;
-  font-weight:700;
-}
-
-.bis-accordion-toggle-text{
-  line-height:1;
-}
-
-.bis-accordion-toggle-collapse{
-  display:none;
-}
-
-.bis-accordion[open] .bis-accordion-toggle-expand{
-  display:none;
-}
-
-.bis-accordion[open] .bis-accordion-toggle-collapse{
-  display:inline;
-}
-
-.bis-accordion-chevron{
-  width:10px;
-  height:10px;
-  border-right:2px solid #111;
-  border-bottom:2px solid #111;
-  transform:rotate(45deg);
-  margin-top:-2px;
-  transition:transform .18s ease;
-}
-
-.bis-accordion[open] .bis-accordion-chevron{
-  transform:rotate(-135deg);
-  margin-top:4px;
-}
-
-.status-preview{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  min-height:30px;
-  padding:0 12px;
-  border-radius:999px;
-  border:1px solid var(--line-strong);
-  background:#fff;
-  color:var(--muted);
-  font-size:.84rem;
-  font-weight:700;
-  white-space:nowrap;
-}
-  .status-preview.is-running{
-  background:var(--info-bg);
-  border-color:var(--info-border);
-  color:var(--info);
-}
-
-.status-preview.is-running .status-preview-dot{
-  background:var(--info);
-}
-
-.status-preview-dot{
-  width:8px;
-  height:8px;
-  border-radius:999px;
-  background:#9aa0a6;
-  flex:0 0 auto;
-}
-
-.status-preview.is-ready{
-  background:var(--success-bg);
-  border-color:var(--success-border);
-  color:var(--success);
-}
-
-.status-preview.is-ready .status-preview-dot{
-  background:var(--success);
-}
-
-.status-preview.is-running,
-.status-preview.is-waiting{
-  background:var(--warning-bg);
-  border-color:var(--warning-border);
-  color:var(--warning);
-}
-
-
-.status-preview.is-waiting{
-  background:var(--warning-bg);
-  border-color:var(--warning-border);
-  color:var(--warning);
-}
-
-.status-preview.is-waiting .status-preview-dot{
-  background:var(--warning);
-}
-
-.status-preview.is-error{
-  background:var(--danger-bg);
-  border-color:var(--danger-border);
-  color:var(--danger);
-}
-
-.status-preview.is-error .status-preview-dot{
-  background:var(--danger);
-}
-
-/* status boxes */
-
-.status-box{
-  border-radius:10px;
-  padding:14px;
-  border:1px solid var(--line);
-  margin-bottom:12px;
-}
-
-.status-box:last-child{
-  margin-bottom:0;
-}
-
-.status-success{
-  background:var(--success-bg);
-  border-color:var(--success-border);
-}
-
-.status-warning{
-  background:var(--warning-bg);
-  border-color:var(--warning-border);
-}
-
-.status-danger{
-  background:var(--danger-bg);
-  border-color:var(--danger-border);
-}
-
-.status-info{
-  background:var(--info-bg);
-  border-color:var(--info-border);
-}
-
-.status-label{
-  font-size:.75rem;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.04em;
-  color:var(--muted);
-  margin-bottom:4px;
-}
-
-.status-main{
-  font-weight:700;
-  line-height:1.35;
-}
-
-.status-copy{
-  margin-top:4px;
-  color:#454b52;
-  line-height:1.5;
-  font-size:.95rem;
-}
-
-/* helper steps */
-
-.helper-alert{
-  background:#fff7e8;
-  border:1px solid #f1d08a;
-  padding:12px 14px;
-  border-radius:10px;
-  margin-bottom:14px;
-  line-height:1.5;
-}
-
-.helper-actions{
-  display:flex;
-  gap:10px;
-  margin-bottom:14px;
-  flex-wrap:wrap;
-}
-
-.helper-steps{
-  display:grid;
-  gap:12px;
-  margin-top:10px;
-}
-
-.helper-step{
-  display:grid;
-  grid-template-columns:36px 1fr;
-  gap:12px;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:#fff;
-}
-
-.helper-num{
-  width:36px;
-  height:36px;
-  background:#111;
-  color:#fff;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:700;
-}
-
-.helper-step strong{
-  font-size:1.02rem;
-}
-
-.helper-step-copy{
-  margin-top:2px;
-  color:#40464d;
-  line-height:1.45;
-}
-
-/* table */
-
-.bis-table-wrap{
-  overflow:auto;
-  max-height:70vh;
-}
-
-table{
-  width:100%;
-  min-width:1200px;
-  border-collapse:collapse;
-}
-
-th{
-  position:sticky;
-  top:0;
-  z-index:1;
-  background:#f3f4f6;
-  text-align:left;
-  font-size:.8rem;
-  text-transform:uppercase;
-  padding:14px 12px;
-  border-bottom:1px solid var(--line);
-  letter-spacing:.03em;
-}
-
-td{
-  padding:14px 12px;
-  border-bottom:1px solid var(--line);
-  vertical-align:top;
-}
-
-tbody tr:hover td{
-  background:#fafbfc;
-}
-
-.sortBtn{
-  cursor:pointer;
-  border:0;
-  background:none;
-  font-weight:700;
-  padding:0;
-}
-.metric{
-  text-align:center;
-  font-weight:600;
-  font-size:1rem;
-}
-
-.metric-total{
-  font-weight:700;
-  font-size:1.05rem;
-}
-
-.metric-low{
-  opacity:.65;
-}
-
-.metric-high{
-  color:#0a7a33;
-}
-
-.metric-medium{
-  color:#a16b00;
-}
-
-.metric-hot{
-  color:#b42318;
-}
-
-th:nth-child(4),
-th:nth-child(5),
-th:nth-child(6),
-td:nth-child(4),
-td:nth-child(5),
-td:nth-child(6){
-  text-align:center;
-}
-td:nth-child(6){
-  background:#fafafa;
-  font-weight:700;
-}
-td:nth-child(2){
-  color:#6b7280;
-  font-weight:500;
-}
-@media(max-width:1000px){
-  .bis-top{
-    grid-template-columns:1fr;
-  }
-
-  .bis-filters{
-    grid-template-columns:1fr;
-  }
-
-  .bis-actions{
-    flex-direction:column;
-    align-items:stretch;
-  }
-
-  .bis-action-group{
-    width:100%;
-  }
-
-  .bis-search-group{
-    border-right:0;
-    padding-right:0;
-    margin-right:0;
-  }
-
-  .bis-search-group button,
-  .bis-refresh-group button{
-    flex:1 1 auto;
-  }
-}
-
-@media(max-width:720px){
-  .bis-wrap{
-    width:min(100% - 20px,1680px);
-    margin:12px auto 24px;
-  }
-
-  .bis-card{
-    padding:16px;
-  }
-
-  .bis-title{
-    font-size:1.5rem;
-  }
-
-  .bis-accordion summary{
-    padding:14px 16px;
-  }
-
-  .bis-accordion-content{
-    padding:16px;
-  }
-
-  .helper-step{
-    grid-template-columns:1fr;
-  }
-
-  .status-preview{
-    display:none;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<div class="bis-wrap">
-  <div class="bis-shell">
-
-    <section class="bis-card">
-
-      <div class="bis-top">
-
-        <div>
-          <img
-            class="nfd-logo"
-            src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
-            alt="Naked & Famous Denim"
-          >
-        </div>
-
-        <div>
-
-          <h1 class="bis-title">Back In Stock Requests</h1>
-
-          <p class="bis-help">
-            Search cached back-in-stock data by product, SKU, or variant. Use <strong>Search</strong> to filter results.
-            Use <strong>Refresh BIS Data</strong> only when you need to rebuild the dashboard data.
-          </p>
-
-          <div class="bis-filters">
-
-            <div>
-              <label for="q">Search</label>
-              <input id="q" placeholder="Product, SKU, variant or URL">
-            </div>
-
-            <div>
-              <label for="variantFilter">Variant</label>
-              <input id="variantFilter" placeholder="27, 28, XS…">
-            </div>
-
-            <div>
-              <label for="minWaiting">Minimum waiting</label>
-              <input id="minWaiting" type="number" value="0">
-            </div>
-
-          </div>
-
-          <div class="bis-actions">
-
-            <div class="bis-action-group bis-search-group">
-              <button id="searchBtn" class="bis-search-btn" type="button">Search</button>
-              <button id="clearBtn" class="bis-clear-btn" type="button">Clear Filters</button>
-            </div>
-
-            <div class="bis-action-group bis-refresh-group">
-              <button id="refreshBtn" class="bis-refresh" type="button">
-                <span class="bis-refresh-icon" aria-hidden="true">↻</span>
-                <span>Refresh BIS Data</span>
-              </button>
-            </div>
-
-            <div id="status" aria-live="polite"></div>
-
-          </div>
-
-          <div class="bis-refresh-note">
-            Refresh is separate from search. Use it only when dashboard data needs to be updated.
-          </div>
-
-          <!-- STATUS ACCORDION -->
-
-          <details class="bis-accordion">
-
-            <summary>
-
-              <div class="bis-accordion-head">
-                <div>
-                  <div class="bis-accordion-title">Current Status</div>
-                  <div class="bis-accordion-sub">Shows whether the dashboard is ready, refreshing, or needs attention.</div>
-                </div>
-                <div id="statusPreview" class="status-preview is-waiting" aria-live="polite">
-                  <span class="status-preview-dot"></span>
-                  <span id="statusPreviewText">Waiting</span>
-                </div>
-              </div>
-
-              <div class="bis-accordion-toggle" aria-hidden="true">
-                <span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
-                <span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
-                <span class="bis-accordion-chevron"></span>
-              </div>
-
-            </summary>
-
-            <div class="bis-accordion-content">
-
-              <div id="refreshStatusCard" class="status-box status-warning">
-                <div class="status-label">Refresh status</div>
-                <div id="jobStatus" class="status-main">Waiting for status</div>
-                <div class="status-copy">This area updates when the dashboard checks the cache or runs a refresh.</div>
-              </div>
-
-              <div class="status-box status-info">
-                <div class="status-label">Last updated</div>
-                <div id="lastUpdated" class="status-main">Never</div>
-                <div class="status-copy">This shows when the cache used by this page was last updated.</div>
-              </div>
-
-              <div class="status-box status-warning">
-                <div class="status-label">If numbers look wrong</div>
-                <div class="status-main">Do these 2 checks</div>
-                <div class="status-copy">
-                  1. Run the Omnisend Sync Helper if Omnisend data is stale.<br>
-                  2. Then click <strong>Refresh BIS Data</strong> to reload the dashboard cache.
-                </div>
-              </div>
-
-            </div>
-
-          </details>
-
-          <details class="bis-accordion">
-
-            <summary>
-
-              <div>
-                <div class="bis-accordion-title">Omnisend Sync Helper</div>
-                <div class="bis-accordion-sub">Use only when Omnisend counts need refreshing.</div>
-              </div>
-
-              <div class="bis-accordion-toggle" aria-hidden="true">
-                <span class="bis-accordion-toggle-text bis-accordion-toggle-expand">Expand</span>
-                <span class="bis-accordion-toggle-text bis-accordion-toggle-collapse">Collapse</span>
-                <span class="bis-accordion-chevron"></span>
-              </div>
-
-            </summary>
-
-            <div class="bis-accordion-content">
-
-              <div class="helper-alert">
-                <strong>Important:</strong> Omnisend must sync first before refreshing this dashboard.
-              </div>
-
-       <div class="helper-actions">
-
-<a class="btn btn-green"
-href="javascript:(async()=>{
-const BASE='https://size-chart-app.onrender.com';
-const TOKEN='fuckyoukiwifuckyouomnisendfuckyouamp';
-
-const PASSES=[
-{sortBy:'waitingContactsCount',sortOrder:'desc'},
-{sortBy:'lastRequestedAt',sortOrder:'asc'},
-{sortBy:'lastRequestedAt',sortOrder:'desc'}
-];
-
-const limit=25;
-const seen=new Set();
-const all=[];
-
-/* progress popup */
-const box=document.createElement('div');
-box.style.position='fixed';
-box.style.bottom='20px';
-box.style.right='20px';
-box.style.zIndex='999999';
-box.style.width='340px';
-box.style.background='#111';
-box.style.color='#fff';
-box.style.padding='16px';
-box.style.borderRadius='12px';
-box.style.fontSize='14px';
-box.style.fontFamily='system-ui';
-box.style.boxShadow='0 10px 28px rgba(0,0,0,.28)';
-box.innerText='Starting BIS sync...';
-document.body.appendChild(box);
-
-function update(msg){
-box.innerText=msg;
-}
-
-try{
-
-for(const pass of PASSES){
-
-let offset=0;
-
-while(true){
-
-const url=`https://app.omnisend.com/REST/contactProductsSubscriptions/v1/requestedProducts?limit=${limit}&offset=${offset}&sortBy=${pass.sortBy}&sortOrder=${pass.sortOrder}`;
-
-const r=await fetch(url,{credentials:'include'});
-
-if(!r.ok) throw new Error(await r.text());
-
-const j=await r.json();
-const items=j.requestedProducts||[];
-
-if(!items.length) break;
-
-for(const item of items){
-
-const sku=String(item?.sku||'').trim();
-if(!sku) continue;
-
-const key=`${item.productID||''}-${item.variantID||''}-${sku}`;
-if(seen.has(key)) continue;
-
-seen.add(key);
-all.push(item);
-
-}
-
-offset+=limit;
-
-update(`Fetched ${all.length.toLocaleString()} rows...`);
-
-}
-
-}
-
-update(`Uploading ${all.length.toLocaleString()} rows...`);
-
-const res=await fetch(`${BASE}/api/bis/import`,{
-method:'POST',
-headers:{
-'Content-Type':'application/json',
-'x-bis-import':TOKEN
-},
-body:JSON.stringify({items:all})
-});
-
-const out=await res.json();
-
-if(!res.ok||!out.ok) throw new Error(out.error||res.status);
-
-update(`BIS sync complete: ${out.count} rows`);
-
-setTimeout(()=>{
-window.location=`${BASE}/bis.html`;
-},1200);
-
-}catch(e){
-
-console.error(e);
-update('BIS sync failed');
-alert('BIS sync failed. Check console.');
-
-}
-
-})();">
-
-SYNC BIS BOOKMARK
-</a>
-
-<a class="btn btn-blue"
-href="https://app.omnisend.com/reports/products"
-target="_blank"
-rel="noopener">
-Open Omnisend Report
-</a>
-
-</div>
-
-              <div class="helper-steps">
-
-                <div class="helper-step">
-                  <div class="helper-num">1</div>
-                  <div>
-                    <strong>Save the sync bookmark</strong>
-                    <div class="helper-step-copy">
-                      Drag the <strong>BIS Sync Bookmark</strong> button above to your <strong>Bookmarks Bar</strong>.
-                      If the bookmarks bar is hidden, press <strong>⌘ + Shift + B</strong> (Mac) or <strong>Ctrl + Shift + B</strong> (Windows).
-                    </div>
-                  </div>
-                </div>
-
-                <div class="helper-step">
-                  <div class="helper-num">2</div>
-                  <div>
-                    <strong>Open the Omnisend report</strong>
-                    <div class="helper-step-copy">
-                      Click <strong>Open Omnisend Report</strong> above and wait until the page finishes loading completely.
-                    </div>
-                  </div>
-                </div>
-
-             <div class="helper-step">
-  <div class="helper-num">3</div>
-  <div>
-    <strong>Run the SYNC BIS bookmark</strong>
-    <div class="helper-step-copy">
-      While on the Omnisend page, click your saved <strong>SYNC BIS</strong> bookmark.
-      The sync may take about <strong>1–2 minutes</strong>. Wait until you see the confirmation popup, you will be sent back to this BIS page automatically.  If needed, wait a moment for the latest data to load.
-    </div>
-  </div>
-</div>
-
-              
-
-              </div>
-
-            </div>
-
-          </details>
-
-        </div>
-      </div>
-
-    </section>
-
-    <section class="bis-card">
-
-      <div class="bis-table-wrap">
-
-        <table id="tbl">
-
-          <thead>
-            <tr>
-              <th><button class="sortBtn" data-sort="productTitle" type="button">Product</button></th>
-              <th><button class="sortBtn" data-sort="variantTitle" type="button">Variant</button></th>
-              <th><button class="sortBtn" data-sort="sku" type="button">SKU</button></th>
-              <th><button class="sortBtn" data-sort="omnisendCount" type="button">Omnisend</button></th>
-              <th><button class="sortBtn" data-sort="ampCount" type="button">AMP</button></th>
-              <th><button class="sortBtn" data-sort="totalCount" type="button">Total</button></th>
-              <th><button class="sortBtn" data-sort="lastRequestedAt" type="button">Last Requested</button></th>
-              <th>Link</th>
-            </tr>
-          </thead>
-
-          <tbody id="tbody"></tbody>
-
-        </table>
-
-      </div>
-
-    </section>
-
-  </div>
-</div>
-<!-- PRODUCT DEMAND MODAL -->
-<div id="productModal" style="
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  z-index:9999;
-  align-items:center;
-  justify-content:center;
-">
-
-  <div style="
-    background:#fff;
-    width:min(1100px,92vw);
-    max-height:85vh;
-    overflow:auto;
-    border-radius:12px;
-    box-shadow:0 20px 60px rgba(0,0,0,.25);
-    padding:22px;
-  ">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2 id="productModalTitle" style="margin:0;font-size:1.4rem;"></h2>
-      <button id="productModalClose" style="font-size:1.2rem;">Close</button>
-    </div>
-
-    <div id="productModalSummary" style="margin-bottom:16px;color:#555;"></div>
-
-    <div style="overflow:auto;">
-      <table id="productModalTable" style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th>Variant</th>
-            <th>SKU</th>
-            <th>Omnisend</th>
-            <th>AMP</th>
-            <th>Total</th>
-            <th>Last Requested</th>
-          </tr>
-        </thead>
-        <tbody id="productModalBody"></tbody>
-      </table>
-    </div>
-
-  </div>
-
-</div>
- 
-<script src="/bis.js"></script>
-
-<script>
-(function(){
-  const jobStatus = document.getElementById('jobStatus');
-  const preview = document.getElementById('statusPreview');
-  const previewText = document.getElementById('statusPreviewText');
-  const refreshStatusCard = document.getElementById('refreshStatusCard');
-
-  if (!jobStatus || !preview || !previewText || !refreshStatusCard) return;
-
-  function applyStatusState(rawText){
-    const text = String(rawText || '').trim();
-    const lower = text.toLowerCase();
-
-    preview.classList.remove('is-ready','is-running','is-waiting','is-error');
-    refreshStatusCard.classList.remove('status-success','status-warning','status-danger','status-info');
-
-    let shortText = 'Waiting';
-    let cardClass = 'status-warning';
-    let previewClass = 'is-waiting';
-
-    if (!text || lower === 'never') {
-      shortText = 'Waiting';
-      cardClass = 'status-warning';
-      previewClass = 'is-waiting';
-    } else if (
-      lower.includes('idle - ok') ||
-      lower.includes('ready') ||
-      lower.includes('complete') ||
-      lower.includes('completed') ||
-      lower.includes('finished') ||
-      lower.includes('success') ||
-      lower.includes('up to date')
-    ) {
-      shortText = 'Ready';
-      cardClass = 'status-success';
-      previewClass = 'is-ready';
-    } else if (
-  lower.includes('running') ||
-  lower.includes('refreshing') ||
-  lower.includes('building') ||
-  lower.includes('processing') ||
-  lower.includes('in progress')
-) {
-  shortText = 'Refreshing';
-  cardClass = 'status-info';
-  previewClass = 'is-running';
-}
-      else if (
-      lower.includes('error') ||
-      lower.includes('failed') ||
-      lower.includes('fail')
-    ) {
-      shortText = 'Error';
-      cardClass = 'status-danger';
-      previewClass = 'is-error';
-    } else if (
-      lower.includes('no bis cache') ||
-      lower.includes('click refresh') ||
-      lower.includes('missing') ||
-      lower.includes('not ready')
-    ) {
-      shortText = 'Needs refresh';
-      cardClass = 'status-warning';
-      previewClass = 'is-waiting';
-    } else {
-      shortText = text;
-      cardClass = 'status-info';
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Back in Stock Requests</title>
+  <link rel="stylesheet" href="/styles.css?v=1" />
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #111111;
+      --muted: #5f6368;
+      --line: #e3e6ea;
+      --line-strong: #d5d9de;
+      --accent: #111111;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
     }
 
-    preview.classList.add(previewClass);
-    refreshStatusCard.classList.add(cardClass);
-    previewText.textContent = shortText;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  applyStatusState(jobStatus.textContent);
+    html {
+      font-size: 16px;
+    }
 
-  const observer = new MutationObserver(function(){
-    applyStatusState(jobStatus.textContent);
-  });
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
 
-  observer.observe(jobStatus, { childList:true, subtree:true, characterData:true });
-})();
-</script>
+    /* Prevent outside/global stylesheet rules from causing odd alignment */
+    body > .bis-wrap {
+      width: min(100% - 32px, 1680px);
+      margin: 24px auto 40px;
+      padding: 0;
+    }
 
+    .bis-wrap {
+      width: min(100% - 32px, 1680px);
+      margin: 24px auto 40px;
+      padding: 0;
+    }
+
+    .bis-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .bis-header-card,
+    .bis-table-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .bis-header-card {
+      padding: 20px;
+    }
+
+    .bis-top {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .nfd-brand {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .nfd-logo {
+      display: block;
+      width: 100%;
+      max-width: 190px;
+      height: auto;
+    }
+
+    .bis-head-right {
+      min-width: 0;
+    }
+
+    .bis-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .bis-title {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .bis-help {
+      margin: 0;
+      max-width: 900px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .nfd-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .bis-filters {
+      display: grid;
+      grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) minmax(180px, 180px);
+      gap: 16px;
+      margin-top: 22px;
+      align-items: end;
+    }
+
+    .bis-filters > div {
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 0.98rem;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus {
+      border-color: #111;
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+    }
+
+    .bis-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button,
+    .nfd-btn {
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    button:hover,
+    .nfd-btn:hover {
+      border-color: #bfc5cc;
+    }
+
+    .bis-refresh-btn {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .bis-refresh-btn[disabled] {
+      opacity: 0.72;
+      cursor: wait;
+    }
+
+    #status {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .bis-status-card {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfbfc;
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr);
+      gap: 10px 14px;
+      align-items: start;
+    }
+
+    .bis-status-card label {
+      margin: 0;
+    }
+
+    .bis-status-main {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .bis-status-help,
+    #lastUpdated,
+    .bis-note-line {
+      font-size: 0.93rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .bis-note-line {
+      margin-top: 10px;
+    }
+
+    .bis-table-card {
+      overflow: hidden;
+    }
+
+    .bis-table-wrap {
+      overflow: auto;
+      max-height: 70vh;
+    }
+
+    .bis-table {
+      width: 100%;
+      min-width: 1280px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.96rem;
+    }
+
+    .bis-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8f9fb;
+      border-bottom: 1px solid var(--line-strong);
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .bis-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+      background: #fff;
+    }
+
+    .bis-table tbody tr:hover td {
+      background: #fafbfc;
+    }
+
+    .bis-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .bis-table th,
+    .bis-table td {
+      white-space: nowrap;
+    }
+
+    .bis-table th:first-child,
+    .bis-table td:first-child {
+      min-width: 320px;
+      white-space: normal;
+    }
+
+    .bis-table th:nth-child(2),
+    .bis-table td:nth-child(2) {
+      min-width: 110px;
+    }
+
+    .bis-table th:nth-child(3),
+    .bis-table td:nth-child(3) {
+      min-width: 180px;
+    }
+
+    .bis-table th:last-child,
+    .bis-table td:last-child {
+      min-width: 90px;
+    }
+
+      cursor: pointer;
+}
+
+
+.sortBtn {
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+
+.sortBtn:hover {
+  background: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.5);
+}
+
+.sortBtn:active {
+  transform: translateY(1px);
+}
+
+.sortBtn.is-active {
+  background: #fff;
+  color: #111;
+  border-color: #fff;
+}
+    .bis-table a {
+      font-weight: 600;
+    }
+
+    @media (max-width: 1100px) {
+      .bis-top {
+        grid-template-columns: 1fr;
+      }
+
+      .nfd-brand {
+        margin-bottom: 4px;
+      }
+
+      .nfd-logo {
+        max-width: 170px;
+      }
+
+      .bis-filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .bis-wrap,
+      body > .bis-wrap {
+        width: min(100% - 20px, 1680px);
+        margin: 12px auto 24px;
+      }
+
+      .bis-header-card {
+        padding: 16px;
+      }
+
+      .bis-title {
+        font-size: 1.45rem;
+      }
+
+      .bis-help {
+        font-size: 0.95rem;
+      }
+
+      .bis-filters {
+        grid-template-columns: 1fr;
+      }
+
+      .bis-status-card {
+        grid-template-columns: 1fr;
+      }
+
+      .bis-table {
+        font-size: 0.92rem;
+      }
+
+      .bis-table thead th,
+      .bis-table tbody td {
+        padding: 12px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bis-wrap">
+    <div class="bis-shell">
+      <section class="bis-header-card">
+        <div class="bis-top">
+          <div class="nfd-brand">
+            <img
+              class="nfd-logo"
+              src="https://nakedandfamousdenim.com/cdn/shop/files/n_f_logo_letters_1b6077a8-7f47-47d5-aa91-7838e7c2f18f.png?v=1742515519&width=280"
+              alt="Naked & Famous Denim"
+            >
+          </div>
+
+          <div class="bis-head-right">
+            <div class="bis-head-row">
+              <div>
+                <h1 class="bis-title">Back In Stock Requests</h1>
+                <p class="bis-help">
+                  This tool uses cached back-in-stock data for faster loading. If the cache is empty or outdated, click
+                  <strong>Refresh BIS Data</strong>. While a refresh is running, the table may continue showing older data
+                  until the new cache is ready.
+                </p>
+              </div>
+
+              <div class="nfd-toolbar">
+                <a class="nfd-btn nfd-btn--secondary" href="/">Home</a>
+                <a class="nfd-btn" href="/index.html">Size Chart Editor</a>
+                <a class="nfd-btn nfd-btn--secondary" href="/audit.html">Go to Audit</a>
+              </div>
+            </div>
+
+            <div class="bis-filters">
+              <div class="bis-search">
+                <label for="q">Search</label>
+                <input id="q" placeholder="Search product, SKU, variant, or URL" />
+              </div>
+
+              <div>
+                <label for="variantFilter">Variant title</label>
+                <input id="variantFilter" placeholder="27, 28, 29, QTY..." />
+              </div>
+
+              <div>
+                <label for="minWaiting">Minimum waiting</label>
+                <input id="minWaiting" type="number" value="0" />
+              </div>
+            </div>
+
+            <div class="bis-actions">
+              <button id="refreshBtn" type="button" class="bis-refresh-btn">Refresh BIS Data</button>
+              <button id="searchBtn" type="button">Apply</button>
+              <button id="clearBtn" type="button">Clear</button>
+              <div id="status"></div>
+            </div>
+
+  <label>Refresh status</label>
+  <div id="jobStatus" class="bis-status-main">Ready</div>
+
+  <label>Last synced</label>
+  <div id="lastUpdated">Never</div>
+
+  <label>Info</label>
+  <div id="bisHelper" class="bis-status-help"></div>
+</div>
+
+<div class="bis-status-card">
+  <label>Refresh status</label>
+  <div id="jobStatus" class="bis-status-main">Ready</div>
+
+  <label>Last synced</label>
+  <div id="lastUpdated">Never</div>
+
+  <label>Info</label>
+  <div id="bisHelper" class="bis-status-help"></div>
+</div>
+
+            <div class="bis-note-line">
+              Tip: scroll horizontally to view all columns on smaller screens.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bis-table-card">
+        <div class="bis-table-wrap">
+          <table class="bis-table" id="tbl">
+            <thead>
+              <tr>
+                <th><button type="button" class="sortBtn" data-sort="productTitle">Product</button></th>
+                <th><button type="button" class="sortBtn" data-sort="variantTitle">Variant</button></th>
+                <th><button type="button" class="sortBtn" data-sort="sku">SKU</button></th>
+                <th><button type="button" class="sortBtn" data-sort="omnisendCount">Omnisend</button></th>
+                <th><button type="button" class="sortBtn" data-sort="ampCount">AMP Legacy</button></th>
+                <th><button type="button" class="sortBtn" data-sort="totalCount">Total</button></th>
+                <th><button type="button" class="sortBtn" data-sort="lastRequestedAt">Last Requested</button></th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script src="/bis.js?v=4"></script>
 </body>
 </html>

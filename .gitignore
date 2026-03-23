@@ -6,3 +6,10 @@ node_modules
 
 # local backups
 *.bak
+data/
+public/retailer-list.backup.html
+server (old).js
+server.broken-backup.js
+size chart liquid - main.rtf
+kiwi-migration/
+image-import/
