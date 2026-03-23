@@ -458,18 +458,26 @@
               <div id="status"></div>
             </div>
 
-            <div class="bis-status-card">
-              <label>Refresh status</label>
-              <div>
-                <div id="jobStatus" class="bis-status-main">Idle - OK</div>
-                <div class="bis-status-help">
-                  If a refresh is running, wait for it to finish. The table updates automatically when the new cache is ready.
-                </div>
-              </div>
+  <label>Refresh status</label>
+  <div id="jobStatus" class="bis-status-main">Ready</div>
 
-              <label>Last updated</label>
-              <div id="lastUpdated">Never</div>
-            </div>
+  <label>Last synced</label>
+  <div id="lastUpdated">Never</div>
+
+  <label>Info</label>
+  <div id="bisHelper" class="bis-status-help"></div>
+</div>
+
+<div class="bis-status-card">
+  <label>Refresh status</label>
+  <div id="jobStatus" class="bis-status-main">Ready</div>
+
+  <label>Last synced</label>
+  <div id="lastUpdated">Never</div>
+
+  <label>Info</label>
+  <div id="bisHelper" class="bis-status-help"></div>
+</div>
 
             <div class="bis-note-line">
               Tip: scroll horizontally to view all columns on smaller screens.
@@ -500,6 +508,6 @@
     </div>
   </div>
 
-  <script src="/bis.js"></script>
+<script src="/bis.js?v=4"></script>
 </body>
 </html>

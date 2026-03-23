@@ -1,7 +1,7 @@
 const $ = (s) => document.querySelector(s);
 
 let ALL = [];
-let SORT = { key: "waitingContactsCount", dir: "desc" };
+let SORT = { key: "waitingContactsCount", dir: "desc"};
 let pollTimer = null;
 let lastRunning = false;
 
@@ -135,8 +135,9 @@ async function loadBisStatus() {
   const job = data.job || {};
   const running = !!job.running;
 
-  if (running) {
-    $("#jobStatus").textContent =
+    $("#jobStatus").textContent =if (running) {
+$("#bisHelper").textContent = "Refreshing BIS data in the background. Please wait.";    
+$("#jobStatus").textContent =
       `Refreshing in background. Please wait. Passes ${job.passesDone || 0}/3 • Pages ${job.pagesDone || 0} • Rows ${job.rowsFound || 0}`;
     $("#refreshBtn").disabled = true;
     $("#refreshBtn").textContent = "Refreshing...";
@@ -144,11 +145,17 @@ async function loadBisStatus() {
     $("#jobStatus").textContent = `Error: ${job.error}`;
     $("#refreshBtn").disabled = false;
     $("#refreshBtn").textContent = "Refresh BIS Data";
-  } else if ((data.cacheCount || 0) === 0) {
     $("#jobStatus").textContent = "No BIS cache yet. Click Refresh BIS Data to build it.";
-    $("#refreshBtn").disabled = false;
-    $("#refreshBtn").textContent = "Refresh BIS Data";
-  } else {
+  $("#refreshBtn").disabled = false;
+  $("#refreshBtn").textContent = "Refresh BIS Data";
+}
+} else if ((data.cacheCount || 0) === 0) {
+  $("#jobStatus").textContent = "Ready";
+  $("#bisHelper").textContent = "No BIS data yet. Ask Gigi to refresh the data.";
+  $("#refreshBtn").disabled = false;
+  $("#refreshBtn").textContent = "Refresh BIS Data";
+}
+ else {
     $("#jobStatus").textContent = "Up to Date";
     $("#refreshBtn").disabled = false;
     $("#refreshBtn").textContent = "Refresh BIS Data";
@@ -205,7 +212,9 @@ document.querySelectorAll(".sortBtn").forEach((btn) => {
 
     if (SORT.key === key) {
       SORT.dir = SORT.dir === "asc" ? "desc" : "asc";
-    } else {
+      $("#jobStatus").textContent = "Ready"
+$("#bisHelper").textContent = "";
+;} else {
       SORT.key = key;
       SORT.dir = "asc";
     }
