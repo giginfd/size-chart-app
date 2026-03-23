@@ -1,12 +1,58 @@
 require("dotenv").config();
-const pdfParse = require("pdf-parse");
+
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const multer = require("multer");
+const { PDFParse } = require("pdf-parse");
+const { parse } = require("csv-parse/sync");
+
+function normalizeName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/&/g, " AND ")
+    .replace(/[.,()]/g, " ")
+    .replace(/\b(DBA|LLC|LTD|INC|CORP|CORPORATION|SAS|COM)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 const retailerUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
 });
+
+const CUSTOM_RETAILERS_FILE = path.join(__dirname, "data", "custom-retailers.json");
+
+function loadCustomRetailers() {
+  try {
+    if (!fs.existsSync(CUSTOM_RETAILERS_FILE)) return [];
+    const raw = fs.readFileSync(CUSTOM_RETAILERS_FILE, "utf8");
+    return JSON.parse(raw || "[]");
+  } catch (err) {
+    return [];
+  }
+}
+
+function saveCustomRetailers(items) {
+  fs.writeFileSync(CUSTOM_RETAILERS_FILE, JSON.stringify(items, null, 2), "utf8");
+}
+const RETAILER_ALIASES_FILE = path.join(__dirname, "data", "retailer-aliases.json");
+
+function loadSavedRetailerAliases() {
+  try {
+    if (!fs.existsSync(RETAILER_ALIASES_FILE)) return {};
+    const raw = fs.readFileSync(RETAILER_ALIASES_FILE, "utf8");
+    return JSON.parse(raw || "{}");
+  } catch (err) {
+    return {};
+  }
+}
+function saveRetailerAliases(map) {
+  fs.writeFileSync(RETAILER_ALIASES_FILE, JSON.stringify(map, null, 2), "utf8");
+}
 
 
 const SHOP_DOMAIN = process.env.SHOP_DOMAIN;
@@ -355,6 +401,484 @@ app.get("/api/templates", (req, res) => {
   });
 });
 
+app.post(
+  "/api/retailer-list/preview",
+  retailerUpload.fields([
+    { name: "pdf", maxCount: 1 },
+    { name: "retailers", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      const pdfFile = req.files?.pdf?.[0];
+      const csvFile = req.files?.retailers?.[0];
+
+      if (!pdfFile) {
+        return res.status(400).json({ error: "Missing PDF file" });
+      }
+
+let csvText = "";
+
+if (csvFile) {
+  csvText = csvFile.buffer.toString("utf8").replace(/^\uFEFF/, "");
+} else {
+  csvText = fs.readFileSync(path.join(__dirname, "data", "retailers.csv"), "utf8").replace(/^\uFEFF/, "");
+}
+
+const parser = new PDFParse({ data: pdfFile.buffer });
+const data = await parser.getText();
+await parser.destroy();
+
+const text = data.text || "";
+
+const csvRows = parse(csvText, {
+  columns: true,
+  skip_empty_lines: true,
+  trim: true,
+  bom: true
+});
+
+
+const savedAliases = loadSavedRetailerAliases();
+
+const EXCLUDED_RETAILERS = new Set([
+  "TATE AND YOKO NYC",
+  "TATE ET YOKO",
+  "TATE ET YOKO WAREHOUSE",
+  "TATE AND YOKO",
+  "TATE AND YOKO WAREHOUSE"
+]);
+
+const RETAILER_ALIASES = {
+  "LA MAISON SIMONS": "Maison Simons",
+  "DEE DEE RETAIL LTD": "Jeanstore",
+  "DEE DEE RETAIL": "Jeanstore",
+  "DEE DEE": "Jeanstore",
+  "DUTIL TORONTO": "Dutil Denim",
+  "GAN K": "Gank",
+  "L E000 L EXCEPTION": "Lexception",
+  "DREAMABLE SAS": "Smallable",
+  "DREAMABLE": "Smallable",
+  "LES HUSSARDS NOIRS": "Flaneurs",
+  "MARYANNS": "Maryann's"
+};
+
+function applyRetailerRules(customerRaw, retailerRaw) {
+  const normalizedRetailer = normalizeName(retailerRaw);
+  const normalizedCustomer = normalizeName(customerRaw);
+
+  if (
+    EXCLUDED_RETAILERS.has(normalizedRetailer) ||
+    EXCLUDED_RETAILERS.has(normalizedCustomer)
+  ) {
+    return { exclude: true, retailer: retailerRaw };
+  }
+
+  if (savedAliases[normalizedRetailer]) {
+    return { exclude: false, retailer: savedAliases[normalizedRetailer] };
+  }
+
+  if (savedAliases[normalizedCustomer]) {
+    return { exclude: false, retailer: savedAliases[normalizedCustomer] };
+  }
+
+  if (
+    normalizedRetailer.includes("REVOLVER") ||
+    normalizedCustomer.includes("REVOLVER")
+  ) {
+    if (normalizedCustomer.includes("BEND")) {
+      return { exclude: false, retailer: "REVOLVR/Bend" };
+    }
+    if (normalizedCustomer.includes("BOZE") || normalizedCustomer.includes("BOZEMAN")) {
+      return { exclude: false, retailer: "REVOLVR/Bozeman" };
+    }
+    if (normalizedCustomer.includes("PORT")) {
+      return { exclude: false, retailer: "REVOLVR/Portland" };
+    }
+    if (normalizedCustomer.includes("MISS")) {
+      return { exclude: false, retailer: "REVOLVR/Missoula" };
+    }
+
+    return { exclude: false, retailer: "REVOLVR" };
+  }
+
+  if (RETAILER_ALIASES[normalizedRetailer]) {
+    return { exclude: false, retailer: RETAILER_ALIASES[normalizedRetailer] };
+  }
+
+  if (RETAILER_ALIASES[normalizedCustomer]) {
+    return { exclude: false, retailer: RETAILER_ALIASES[normalizedCustomer] };
+  }
+
+  return { exclude: false, retailer: retailerRaw };
+}
+
+const csvDirectory = csvRows.map((row) => ({
+  name: row.name || row.Name || "",
+  url: row.url || row.URL || row.Url || row.website || row.Website || "",
+  country: row.country || row.Country || "",
+  normalizedName: normalizeName(row.name || row.Name || "")
+}));
+
+const customDirectory = loadCustomRetailers().map((row) => ({
+  name: row.name || "",
+  url: row.url || "",
+  country: row.country || "",
+  normalizedName: normalizeName(row.name || "")
+}));
+
+const directory = [...csvDirectory, ...customDirectory];
+
+const lines = text
+  .split("\n")
+  .map((l) => l.trim())
+  .filter(Boolean);
+
+const FIT_MAP = {
+  "03": "Weird Guy",
+  "06": "Easy Guy",
+  "16": "Strong Guy",
+  "00": "Super Guy",
+  "21": "True Guy",
+  "35": "Groovy Guy",
+  "64": "Denim Jacket",
+  "49": "Zip Jacket",
+  "65": "Chore Coat",
+  "93": "Bestie",
+  "46": "Maudie",
+  "37": "True Girl",
+  "88": "Wide Wild West",
+  "14": "Wide Leg Trouser",
+  "96": "Pleated Trouser",
+  "25": "Kimono Shirt",
+  "04": "Wise Guy Jacket"
+};
+
+const ALLOWED_STATUSES = new Set(["Allocated", "Complete"]);
+
+const records = [];
+
+let currentCustomerRaw = null;
+let currentRetailerRaw = null;
+let currentStyleSku = null;
+
+for (const line of lines) {
+  if (line.startsWith("Customer :")) {
+    currentCustomerRaw = line.replace(/^Customer\s*:\s*/, "").trim();
+
+    let retailer = currentCustomerRaw;
+    retailer = retailer.replace(/^[A-Z]{3}\d{3}\s+/, "");
+    retailer = retailer.replace(/^\d+\s+/, "");
+    retailer = retailer.replace(/^\d+\s+/, "");
+    retailer = retailer.replace(/\s*\(?DBA\b.*$/i, "").trim();
+
+    const leadingParen = retailer.match(/^\(([^)]+)\)/);
+    if (leadingParen) {
+      retailer = leadingParen[1].trim();
+    }
+
+    retailer = retailer.replace(/\s+\d+(?:\s+\d+)*$/, "").trim();
+
+    currentRetailerRaw = retailer;
+    continue;
+  }
+
+  if (line.includes("Style :")) {
+const styleMatch = line.match(/Style\s*:\s*([A-Z0-9]+)/i);
+    if (styleMatch) {
+      currentStyleSku = styleMatch[1].trim();
+    }
+    continue;
+  }
+
+if (
+  line.startsWith("Total Style") ||
+  line.startsWith("Total Customer") ||
+  line.startsWith("Original") ||
+  line.startsWith("Bal To Ship") ||
+  line.startsWith("Allocated") ||
+  line.startsWith("Picked") ||
+  line.startsWith("Shipped") ||
+  line.startsWith("Price :") ||
+  line.startsWith("Order Type :") ||
+  line.startsWith("Order Catg :")
+) {
+  continue;
+}
+
+const looksLikeOrderRow =
+  /^[A-Z0-9]+\s+.*-\s+\d+\s+(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i.test(line);
+
+if (!looksLikeOrderRow) {
+  continue;
+}
+
+const statusMatch = line.match(/\b(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i);
+
+if (statusMatch && currentCustomerRaw && currentStyleSku) {
+  const status = statusMatch[1];
+
+  if (!ALLOWED_STATUSES.has(status)) {
+    continue;
+  }
+
+  const fitCode = currentStyleSku.slice(-2);
+  const fit = FIT_MAP[fitCode] || null;
+
+  const retailerRule = applyRetailerRules(currentCustomerRaw, currentRetailerRaw);
+
+  if (retailerRule.exclude) {
+    continue;
+  }
+
+  records.push({
+    customerRaw: currentCustomerRaw,
+    retailerRaw: retailerRule.retailer,
+    styleSku: currentStyleSku,
+    status,
+    fitCode,
+    fit
+  });
+}
+}
+
+const grouped = new Map();
+
+for (const record of records) {
+  const key = record.retailerRaw;
+
+  if (!grouped.has(key)) {
+    grouped.set(key, {
+      retailerRaw: record.retailerRaw,
+      fits: new Set()
+    });
+  }
+
+  grouped.get(key).fits.add(record.fit);
+}
+
+const merged = Array.from(grouped.values())
+  .map((item) => ({
+    retailerRaw: item.retailerRaw,
+    fits: Array.from(item.fits).filter(Boolean).sort()
+  }))
+  .sort((a, b) => a.retailerRaw.localeCompare(b.retailerRaw));
+
+const matched = merged.map((item) => {
+  const key = normalizeName(item.retailerRaw);
+
+  let hit = directory.find((d) => d.normalizedName === key);
+
+  if (!hit) {
+    hit = directory.find((d) =>
+      d.normalizedName.includes(key) ||
+      key.includes(d.normalizedName)
+    );
+  }
+
+  return {
+    retailerRaw: item.retailerRaw,
+    matchedName: hit ? hit.name : item.retailerRaw,
+    url: hit ? hit.url : "",
+    country: hit ? hit.country : "Unknown",
+    fits: item.fits,
+    isUnknown: !hit
+  };
+}); // ← VERY IMPORTANT
+
+matched.sort((a, b) =>
+  a.country.localeCompare(b.country) ||
+  a.matchedName.localeCompare(b.matchedName)
+);
+const dedupedMap = new Map();
+
+for (const item of matched) {
+  const key = item.matchedName;
+
+  if (!dedupedMap.has(key)) {
+    dedupedMap.set(key, {
+      ...item,
+      fits: new Set(item.fits)
+    });
+  } else {
+    const existing = dedupedMap.get(key);
+    item.fits.forEach((f) => existing.fits.add(f));
+  }
+}
+
+const deduped = Array.from(dedupedMap.values()).map((item) => ({
+  ...item,
+  fits: Array.from(item.fits)
+}));
+
+const byCountry = new Map();
+
+for (const item of deduped) {
+  const country = item.country || "Unknown";
+
+  if (!byCountry.has(country)) {
+    byCountry.set(country, []);
+  }
+
+  byCountry.get(country).push(item);
+}
+const unknownRetailers = deduped
+  .filter((item) => item.isUnknown)
+  .map((item) => item.retailerRaw);
+
+const retailerOptions = directory
+  .map((d) => d.name)
+  .filter(Boolean)
+  .sort((a, b) => a.localeCompare(b));
+
+const formattedBlocks = Array.from(byCountry.entries()).map(([country, retailers]) => {
+  const lines = retailers.map((item) => {
+    const label = item.url
+      ? `${item.matchedName} (${item.url})`
+      : item.matchedName;
+
+    return `${label} - ${item.fits.join(", ")}`;
+  });
+
+  return `${country}:\n\n${lines.join("\n")}`;
+});
+
+const formattedText = formattedBlocks.join("\n\n");
+
+const htmlBlocks = Array.from(byCountry.entries()).map(([country, retailers]) => {
+  const lines = retailers.map((item) => {
+    const label = item.url
+      ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.matchedName}</a>`
+      : item.matchedName;
+
+    return `${label} - ${item.fits.join(", ")}`;
+  });
+
+  return `<strong>${country}:</strong><br><br>${lines.join("<br>")}`;
+});
+
+const formattedHtml = htmlBlocks.join("<br><br>");
+return res.json({
+  ok: true,
+  totalLines: lines.length,
+  totalCsvRows: csvRows.length,
+  totalRecords: records.length,
+  totalRetailers: deduped.length,
+  preview: deduped.slice(0, 25),
+  formattedText,
+  formattedHtml,
+  unknownRetailers,
+  retailerOptions
+});
+
+    } catch (err) {
+      return res.status(500).json({
+        ok: false,
+        error: err.message
+      });
+    }
+  }
+);
+
+app.post("/api/retailer-list/save-alias", express.json(), (req, res) => {
+  try {
+    const unknownRetailer = String(req.body?.unknownRetailer || "").trim();
+    const selectedRetailer = String(req.body?.selectedRetailer || "").trim();
+
+    if (!unknownRetailer) {
+      return res.status(400).json({ ok: false, error: "Missing unknownRetailer" });
+    }
+
+    if (!selectedRetailer) {
+      return res.status(400).json({ ok: false, error: "Missing selectedRetailer" });
+    }
+
+    const aliases = loadSavedRetailerAliases();
+    aliases[normalizeName(unknownRetailer)] = selectedRetailer;
+    saveRetailerAliases(aliases);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/retailer-list/add-retailer", express.json(), (req, res) => {
+  try {
+    const unknownRetailer = String(req.body?.unknownRetailer || "").trim();
+    const name = String(req.body?.name || "").trim();
+    const url = String(req.body?.url || "").trim();
+    const country = String(req.body?.country || "").trim();
+
+    if (!unknownRetailer) {
+      return res.status(400).json({ ok: false, error: "Missing unknownRetailer" });
+    }
+
+    if (!name) {
+      return res.status(400).json({ ok: false, error: "Missing retailer name" });
+    }
+
+    if (!country) {
+      return res.status(400).json({ ok: false, error: "Missing country" });
+    }
+
+    const customRetailers = loadCustomRetailers();
+    const exists = customRetailers.some(
+      (item) => normalizeName(item.name) === normalizeName(name)
+    );
+
+    if (!exists) {
+customRetailers.push({
+  name,
+  url,
+  country,
+  addedAt: new Date().toISOString(),
+  syncedToLocator: false
+});
+      saveCustomRetailers(customRetailers);
+    }
+
+    const aliases = loadSavedRetailerAliases();
+    aliases[normalizeName(unknownRetailer)] = name;
+    saveRetailerAliases(aliases);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/api/retailer-list/custom-retailers", (req, res) => {
+  try {
+    const items = loadCustomRetailers();
+    res.json({ ok: true, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/retailer-list/mark-synced", express.json(), (req, res) => {
+  try {
+    const name = String(req.body?.name || "").trim();
+
+    if (!name) {
+      return res.status(400).json({ ok: false, error: "Missing name" });
+    }
+
+    const items = loadCustomRetailers().map((item) => {
+      if (item.name === name) {
+        return { ...item, syncedToLocator: true };
+      }
+      return item;
+    });
+
+    saveCustomRetailers(items);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.post("/api/save", async (req, res) => {
   try {
     const skuTag = normalizeSkuTag(req.body.skuTag);
@@ -467,36 +991,7 @@ app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
     res.status(500).json({ ok: false, error: String(e.message || e) });
   }
 });
-app.post(
-  "/api/retailer-list/preview",
-  retailerUpload.single("pdf"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "Missing PDF file" });
-      }
 
-      const data = await pdfParse(req.file.buffer);
-      const text = data.text || "";
-
-      const lines = text
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-
-      return res.json({
-        ok: true,
-        totalLines: lines.length,
-        preview: lines.slice(0, 120),
-      });
-    } catch (err) {
-      return res.status(500).json({
-        ok: false,
-        error: err.message,
-      });
-    }
-  }
-);
 
 // ===============================
 // SIZE CHART AUDIT API (paginated)
