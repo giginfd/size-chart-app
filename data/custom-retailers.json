@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Mercury Denim",
+    "url": "https://mercurydenim.com/",
+    "country": "Hong Kong",
+    "syncedToLocator": true
+  },
+  {
+    "name": "All Up Clothing",
+    "url": "https://www.allupclothing.com/",
+    "country": "UK",
+    "addedAt": "2026-03-23T13:55:30.814Z",
+    "syncedToLocator": true
+  },
+  {
+    "name": "Still Life",
+    "url": "CLOSED",
+    "country": "CLOSED",
+    "addedAt": "2026-03-23T14:27:24.999Z",
+    "syncedToLocator": true
+  }
+]
