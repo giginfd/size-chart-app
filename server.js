@@ -553,7 +553,7 @@ const FIT_MAP = {
   "04": "Wise Guy Jacket"
 };
 
-const ALLOWED_STATUSES = new Set(["Allocated", "Complete"]);
+const ALLOWED_STATUSES = new Set(["Allocated", "Complete", "Picked"]);
 
 const records = [];
 
@@ -606,14 +606,16 @@ if (
 }
 
 const looksLikeOrderRow =
-  /^[A-Z0-9]+\s+.*-\s+\d+\s+(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i.test(line);
+  /^[A-Z0-9]+\s+.*-\s+\d+\s+(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i.test(line) ||
+  /^[A-Z0-9 ]+\s+Picked\s+Picked\s+\d+\s+-\s+\d+\b/i.test(line);
 
 if (!looksLikeOrderRow) {
   continue;
 }
 
-const statusMatch = line.match(/\b(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i);
-
+const statusMatch =
+  line.match(/\b(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i);
+  
 if (statusMatch && currentCustomerRaw && currentStyleSku) {
   const status = statusMatch[1];
 
