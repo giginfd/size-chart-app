@@ -429,6 +429,7 @@ const data = await parser.getText();
 await parser.destroy();
 
 const text = data.text || "";
+      const isPickingReport = text.includes("OS Picking Status Detail Report");
 
 const csvRows = parse(csvText, {
   columns: true,
@@ -605,20 +606,24 @@ if (
   continue;
 }
 
-const looksLikeOrderRow =
-  /^[A-Z0-9]+\s+.*-\s+\d+\s+(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i.test(line) ||
-  /^[A-Z0-9 ]+\s+Picked\s+Picked\s+\d+\s+-\s+\d+\b/i.test(line);
-
+const looksLikeOrderRow = isPickingReport
+  ? /^[A-Z0-9 ]+\s+Picked\s+Picked\s+\d+\s+-\s+\d+/i.test(line)
+  : /^[A-Z0-9]+\s+.*-\s+\d+\s+(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i.test(line);
+  
 if (!looksLikeOrderRow) {
   continue;
 }
 
-const statusMatch =
-  line.match(/\b(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i);
-  
-if (statusMatch && currentCustomerRaw && currentStyleSku) {
-  const status = statusMatch[1];
+let status = null;
 
+if (isPickingReport) {
+  status = "Picked";
+} else {
+  const statusMatch = line.match(/\b(Allocated|Complete|Cancelled|Outstanding|Invoiced|Picked)\b/i);
+  status = statusMatch ? statusMatch[1] : null;
+}
+
+if (status && currentCustomerRaw && currentStyleSku) {
   if (!ALLOWED_STATUSES.has(status)) {
     continue;
   }
