@@ -104,8 +104,8 @@ function render() {
     elements.rows.innerHTML = `
       <tr>
         <td colspan="6" class="missing-charts-empty">
-  No products match the selected filters.
-</td>
+          No products match the selected filters.
+        </td>
       </tr>
     `;
 
@@ -120,19 +120,22 @@ function render() {
         `https://admin.shopify.com/store/tate-yoko-2/products/${productId}`;
 
       const sku = String(product.skuTag || "")
-        .replace(/^__+/, "");
+        .replace(/^__+/, "")
+        .trim();
 
-  const editorParams = new URLSearchParams();
+      const editorParams = new URLSearchParams();
 
-if (sku) {
-  editorParams.set("sku", sku);
-}
+      if (sku) {
+        editorParams.set("sku", sku);
+      }
 
-if (product.title) {
-  editorParams.set("chartName", product.title);
-}
+      if (product.title) {
+        editorParams.set("chartName", product.title);
+      }
 
-const editorUrl = `/index.html?${editorParams.toString()}`;
+      const editorUrl = editorParams.toString()
+        ? `/index.html?${editorParams.toString()}`
+        : "/index.html";
 
       return `
         <tr>
