@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Products Missing Size Charts</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <main class="nfd-shell">
+    <header class="nfd-header">
+      <div>
+        <p class="nfd-eyebrow">Naked & Famous Denim</p>
+
+        <h1>Products Missing Size Charts</h1>
+
+        <p>
+          Active and draft Shopify products without an associated size chart.
+        </p>
+      </div>
+    </header>
+
+    <div class="nfd-toolbar">
+      <a class="nfd-btn nfd-btn--secondary" href="/">
+        Home
+      </a>
+
+      <a class="nfd-btn nfd-btn--secondary" href="/index.html">
+        Size Chart Editor
+      </a>
+
+      <button
+        id="refreshBtn"
+        class="nfd-btn"
+        type="button"
+      >
+        Refresh
+      </button>
+    </div>
+
+    <section class="nfd-panel">
+      <div class="nfd-filter-row">
+        <label>
+          Search
+
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Product, handle or SKU tag"
+          >
+        </label>
+
+        <label>
+          Status
+
+          <select id="statusFilter">
+            <option value="">Active and draft</option>
+            <option value="ACTIVE">Active</option>
+            <option value="DRAFT">Draft</option>
+          </select>
+        </label>
+      </div>
+
+      <p id="statusText" class="nfd-status">
+        Loading products…
+      </p>
+
+      <div class="nfd-table-wrap">
+        <table class="nfd-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Status</th>
+              <th>SKU Tag</th>
+              <th>Handle</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/missing-charts.js"></script>
+</body>
+</html>
