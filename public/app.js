@@ -334,215 +334,176 @@ await copyText(text);
   });
 })();
 
-const SHOPIFY_ROW_LABELS = {
-  "tag size": "TAGSIZE",
-  "tagsize": "TAGSIZE",
-  "waist": "WAIST",
-  "hips": "HIPS",
-  "hip": "HIPS",
-  "front rise": "FRONTRISE",
-  "frontrise": "FRONTRISE",
-  "back rise": "BACKRISE",
-  "backrise": "BACKRISE",
-  "upper thigh": "THIGH",
-  "thigh": "THIGH",
-  "knee": "KNEE",
-  "leg opening": "LEG OPENING",
-  "legopening": "LEG OPENING",
-  "inseam": "INSEAM"
-};
+// =========================
+// Copy Shopify HTML button
+// =========================
 
-function escapeShopifyHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+(function () {
+  const btn = document.getElementById("copyHtmlBtn");
+  const status = document.getElementById("copyHtmlStatus");
 
-function normalizeShopifyLabel(value) {
-  const normalized = String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+  if (!btn) return;
 
-  return SHOPIFY_ROW_LABELS[normalized] || String(value ?? "").trim().toUpperCase();
-}
+  const SHOPIFY_ROW_LABELS = {
+    "tag size": "TAGSIZE",
+    "tagsize": "TAGSIZE",
+    "waist": "WAIST",
+    "hips": "HIPS",
+    "hip": "HIPS",
+    "front rise": "FRONTRISE",
+    "frontrise": "FRONTRISE",
+    "back rise": "BACKRISE",
+    "backrise": "BACKRISE",
+    "upper thigh": "THIGH",
+    "thigh": "THIGH",
+    "knee": "KNEE",
+    "leg opening": "LEG OPENING",
+    "legopening": "LEG OPENING",
+    "inseam": "INSEAM"
+  };
 
-function formatShopifyMeasurement(value, isHeaderRow) {
-  const cleaned = String(value ?? "")
-    .trim()
-    .replace(/["”“]/g, "");
-
-  if (!cleaned || isHeaderRow) {
-    return cleaned;
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  return `${cleaned}"`;
-}
+  function normalizeLabel(value) {
+    const normalized = String(value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
 
-/**
- * Attempts to read the editor grid as rows of input values.
- *
- * Expected grid structure:
- * - Each visual row contains input or select elements.
- * - First field is the measurement label.
- * - Remaining fields are sizes or measurements.
- *
- * Adjust the selectors here if your grid uses a more specific row class.
- */
-function getChartRowsFromGrid() {
-  const grid = document.getElementById("grid");
-
-  if (!grid) {
-    throw new Error("Chart grid was not found.");
+    return (
+      SHOPIFY_ROW_LABELS[normalized] ||
+      String(value ?? "").trim().toUpperCase()
+    );
   }
 
-  const possibleRows = Array.from(
-    grid.querySelectorAll("tr, .grid-row, .chart-row, [data-row]")
-  );
+  function formatMeasurement(value) {
+    const cleaned = String(value ?? "")
+      .trim()
+      .replace(/["”“]/g, "");
 
-  const rows = possibleRows
-    .map(row => {
-      const fields = Array.from(
-        row.querySelectorAll("input, select, textarea")
-      );
+    if (!cleaned) return "";
 
-      return fields.map(field => field.value.trim());
-    })
-    .filter(row => row.length > 1);
-
-  if (rows.length) {
-    return rows;
+    return `${cleaned}"`;
   }
 
-  /*
-   * Fallback for grids constructed as a flat collection of inputs.
-   * Set data-row and data-column attributes when rendering the grid
-   * for the most reliable export.
-   */
-  const indexedFields = Array.from(
-    grid.querySelectorAll("[data-row][data-column]")
-  );
+  function buildShopifyHtml() {
+    const sizes = Array.isArray(current.sizes)
+      ? current.sizes
+      : [];
 
-  if (!indexedFields.length) {
-    throw new Error("No editable chart values were found.");
-  }
+    const measurementRows = Array.isArray(current.rows)
+      ? current.rows
+      : [];
 
-  const rowMap = new Map();
-
-  indexedFields.forEach(field => {
-    const rowIndex = Number(field.dataset.row);
-    const columnIndex = Number(field.dataset.column);
-
-    if (!rowMap.has(rowIndex)) {
-      rowMap.set(rowIndex, []);
+    if (!sizes.length) {
+      throw new Error("The chart has no tag sizes.");
     }
 
-    rowMap.get(rowIndex)[columnIndex] = field.value.trim();
-  });
-
-  return Array.from(rowMap.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([, row]) => row);
-}
-
-function createShopifySizeChartHtml(rows) {
-  if (!Array.isArray(rows) || rows.length < 2) {
-    throw new Error("The chart needs a tag-size row and at least one measurement row.");
-  }
-
-  const columnCount = Math.max(...rows.map(row => row.length));
-
-  if (columnCount < 2) {
-    throw new Error("The chart needs at least one size column.");
-  }
-
-  const normalizedRows = rows.map(row => {
-    const padded = [...row];
-
-    while (padded.length < columnCount) {
-      padded.push("");
+    if (!measurementRows.length) {
+      throw new Error("The chart has no measurement rows.");
     }
 
-    return padded;
-  });
+    const columnCount = sizes.length + 1;
+    const firstColumnWidth = 14;
+    const sizeColumnWidth =
+      (100 - firstColumnWidth) / sizes.length;
 
-  /*
-   * Use a wider first column for labels.
-   * The remaining width is divided equally among all sizes.
-   */
-  const firstColumnWidth = 14;
-  const measurementColumnWidth =
-    (100 - firstColumnWidth) / (columnCount - 1);
+    const html = [];
 
-  const html = [];
+    html.push('<table style="width: 100%;" width="575">');
+    html.push("<tbody>");
 
-  html.push('<table style="width: 100%;" width="575">');
-  html.push("<tbody>");
-
-  normalizedRows.forEach((row, rowIndex) => {
+    // First row: TAGSIZE plus all sizes
     html.push("<tr>");
 
-    row.forEach((cell, columnIndex) => {
-      const width =
-        columnIndex === 0
-          ? firstColumnWidth
-          : measurementColumnWidth;
+    html.push(
+      `<td style="width: ${firstColumnWidth.toFixed(4)}%;"><strong>TAGSIZE</strong></td>`
+    );
 
-      let content;
-
-      if (columnIndex === 0) {
-        content = normalizeShopifyLabel(cell);
-      } else {
-        content = formatShopifyMeasurement(cell, rowIndex === 0);
-      }
-
-      content = escapeShopifyHtml(content);
-
-      if (rowIndex === 0) {
-        content = `<strong>${content}</strong>`;
-      }
-
+    sizes.forEach(size => {
       html.push(
-        `<td style="width: ${width.toFixed(4)}%;">${content}</td>`
+        `<td style="width: ${sizeColumnWidth.toFixed(4)}%;"><strong>${escapeHtml(size)}</strong></td>`
       );
     });
 
     html.push("</tr>");
-  });
 
-  html.push("</tbody>");
-  html.push("</table>");
+    // Measurement rows: first column contains the words
+    measurementRows.forEach(row => {
+      const label = normalizeLabel(row.label);
+      const values = Array.isArray(row.values)
+        ? row.values
+        : [];
 
-  return html.join("\n");
-}
+      html.push("<tr>");
 
-async function copyShopifyHtml() {
-  const status = document.getElementById("copyHtmlStatus");
+      html.push(
+        `<td style="width: ${firstColumnWidth.toFixed(4)}%;">${escapeHtml(label)}</td>`
+      );
 
-  try {
-    const rows = getChartRowsFromGrid();
-    const html = createShopifySizeChartHtml(rows);
+      sizes.forEach((size, columnIndex) => {
+        const value = values[columnIndex] ?? "";
 
-    await navigator.clipboard.writeText(html);
+        html.push(
+          `<td style="width: ${sizeColumnWidth.toFixed(4)}%;">${escapeHtml(formatMeasurement(value))}</td>`
+        );
+      });
 
-    if (status) {
-      status.textContent = "Shopify HTML copied.";
-    }
-  } catch (error) {
-    console.error(error);
+      html.push("</tr>");
+    });
 
-    if (status) {
-      status.textContent =
-        error instanceof Error
-          ? error.message
-          : "Could not create Shopify HTML.";
-    }
+    html.push("</tbody>");
+    html.push("</table>");
+
+    return html.join("\n");
   }
-}
 
-document
-  .getElementById("copyHtmlBtn")
-  ?.addEventListener("click", copyShopifyHtml);
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+
+  btn.addEventListener("click", async () => {
+    try {
+      const html = buildShopifyHtml();
+
+      await copyText(html);
+
+      if (status) {
+        status.textContent = "Shopify HTML copied.";
+      }
+
+      setTimeout(() => {
+        if (status) status.textContent = "";
+      }, 1800);
+    } catch (error) {
+      console.error(error);
+
+      if (status) {
+        status.textContent =
+          error instanceof Error
+            ? error.message
+            : "Could not create Shopify HTML.";
+      }
+    }
+  });
+})();
