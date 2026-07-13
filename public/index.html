@@ -40,7 +40,49 @@ Copy chart to clipboard
 </div>
 
 </div>
+<div class="row productSearchRow">
+  <label for="productSearch">
+    Product
+  </label>
 
+  <div
+    class="productSearch"
+    id="productSearchContainer"
+  >
+    <input
+      id="productSearch"
+      type="search"
+      placeholder="Search by product title, SKU or handle"
+      autocomplete="off"
+      spellcheck="false"
+      aria-autocomplete="list"
+      aria-controls="productSearchResults"
+      aria-expanded="false"
+    />
+
+    <div
+      id="productSearchLoading"
+      class="productSearchLoading"
+      hidden
+    >
+      Searching…
+    </div>
+
+    <div
+      id="productSearchResults"
+      class="productSearchResults"
+      role="listbox"
+      hidden
+    ></div>
+  </div>
+
+  <div
+    id="selectedProduct"
+    class="selectedProduct"
+    hidden
+  ></div>
+</div>
+  
 <div class="row">
 <label>SKU Tag</label>
 <div class="skuRow">
