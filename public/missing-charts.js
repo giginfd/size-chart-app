@@ -132,6 +132,7 @@ function render() {
       if (product.title) {
         editorParams.set("chartName", product.title);
       }
+      editorParams.set("mode", "create");
 
       const editorUrl = editorParams.toString()
         ? `/index.html?${editorParams.toString()}`
