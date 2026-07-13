@@ -1072,55 +1072,49 @@ app.get("/api/audit", async (req, res) => {
        * Keep this separate from season tags.
        * Preferred format: __101110006
        */
-      let skuTag = "";
+   let skuTag = "";
 
-      for (const tag of tags) {
-        if (!tag.startsWith("__")) {
-          continue;
-        }
+const knownSeasonTags = new Set([
+  "__CORE",
+  "__SS26",
+  "__FW26",
+  "__SS25",
+  "__FW25",
+  "__SS24",
+  "__FW24"
+]);
 
-        const core = tag.replace(/^__+/, "");
+for (const tag of tags) {
+  const normalizedTag = String(tag || "").trim();
 
-        if (/^\d+$/.test(core)) {
-          skuTag = tag;
-          break;
-        }
-      }
+  if (!normalizedTag.startsWith("__")) {
+    continue;
+  }
 
-      /*
-       * Fallback for older or unusual SKU tags.
-       *
-       * Exclude season tags so __CORE or __SS26
-       * can never accidentally become the SKU tag.
-       */
-      const knownSeasonTags = new Set([
-        "__CORE",
-        "__SS26",
-        "__FW26",
-        "__SS25",
-        "__FW25",
-        "__SS24",
-        "__FW24"
-      ]);
+  if (knownSeasonTags.has(normalizedTag.toUpperCase())) {
+    continue;
+  }
 
-      if (!skuTag) {
-        skuTag =
-          tags.find(
-            (tag) =>
-              tag.startsWith("__") &&
-              !knownSeasonTags.has(tag.toUpperCase())
-          ) || "";
-      }
+  const core = normalizedTag.replace(/^__+/, "");
 
-      /*
-       * Seasons
-       *
-       * These are additional Shopify tags and are
-       * completely separate from the SKU tag.
-       */
-      const seasons = tags
-        .map((tag) => String(tag).toUpperCase())
-        .filter((tag) => knownSeasonTags.has(tag));
+  /*
+   * Accept numeric and alphanumeric SKU tags, including:
+   * __101110006
+   * __W03138820
+   * __1909673SM
+   */
+  if (/^[A-Z0-9]+$/i.test(core)) {
+    skuTag = normalizedTag;
+    break;
+  }
+}
+
+/*
+ * Seasons are separate from the SKU tag.
+ */
+const seasons = tags
+  .map((tag) => String(tag || "").trim().toUpperCase())
+  .filter((tag) => knownSeasonTags.has(tag));
 
       return {
         id: product.id,
