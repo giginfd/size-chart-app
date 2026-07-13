@@ -143,8 +143,8 @@
     }
 
     .missing-charts-controls {
-      display: grid;
-      grid-template-columns: minmax(240px, 1fr) 220px;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 190px 190px;
       gap: 16px;
       align-items: end;
       padding: 20px;
@@ -456,44 +456,91 @@
     </nav>
 
     <section class="missing-charts-panel">
-      <div class="missing-charts-controls">
-        <label class="missing-charts-field">
-          <span class="missing-charts-field-label">
-            Search products
-          </span>
+    <div class="missing-charts-controls">
+  <label class="missing-charts-field">
+    <span class="missing-charts-field-label">
+      Search products
+    </span>
 
-          <input
-            id="searchInput"
-            class="missing-charts-input"
-            type="search"
-            placeholder="Search product, handle or SKU tag"
-            autocomplete="off"
-          >
-        </label>
+    <input
+      id="searchInput"
+      class="missing-charts-input"
+      type="search"
+      placeholder="Search product, handle or SKU tag"
+      autocomplete="off"
+    >
+  </label>
 
-        <label class="missing-charts-field">
-          <span class="missing-charts-field-label">
-            Product status
-          </span>
+  <label class="missing-charts-field">
+    <span class="missing-charts-field-label">
+      Product status
+    </span>
 
-          <select
-            id="statusFilter"
-            class="missing-charts-select"
-          >
-            <option value="">
-              Active and draft
-            </option>
+    <select
+      id="statusFilter"
+      class="missing-charts-select"
+    >
+      <option value="">
+        Active and draft
+      </option>
 
-            <option value="ACTIVE">
-              Active only
-            </option>
+      <option value="ACTIVE">
+        Active only
+      </option>
 
-            <option value="DRAFT">
-              Draft only
-            </option>
-          </select>
-        </label>
-      </div>
+      <option value="DRAFT">
+        Draft only
+      </option>
+    </select>
+  </label>
+
+  <label class="missing-charts-field">
+    <span class="missing-charts-field-label">
+      Product group
+    </span>
+
+    <select
+      id="groupFilter"
+      class="missing-charts-select"
+    >
+      <option value="">
+        All product groups
+      </option>
+
+      <option value="__CORE">
+        Core
+      </option>
+
+      <option value="__SS26">
+        SS26
+      </option>
+
+      <option value="__FW26">
+        FW26
+      </option>
+
+      <option value="__SS25">
+        SS25
+      </option>
+
+      <option value="__FW25">
+        FW25
+      </option>
+
+      <option value="__SS24">
+        SS24
+      </option>
+
+      <option value="__FW24">
+        FW24
+      </option>
+
+      <option value="UNTAGGED">
+        None of these groups
+      </option>
+    </select>
+  </label>
+</div>
 
       <p
         id="statusText"
