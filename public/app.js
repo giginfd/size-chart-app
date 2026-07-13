@@ -566,3 +566,597 @@ await copyText(text);
     }
   });
 })();
+
+// ==========================================
+// PRODUCT SEARCH
+// ==========================================
+
+const productSearchInput =
+  document.getElementById("productSearch");
+
+const productSearchResults =
+  document.getElementById(
+    "productSearchResults"
+  );
+
+const productSearchLoading =
+  document.getElementById(
+    "productSearchLoading"
+  );
+
+const selectedProduct =
+  document.getElementById("selectedProduct");
+
+const skuTagInput =
+  document.getElementById("skuTag");
+
+const chartNameInput =
+  document.getElementById("chartName");
+
+let productSearchTimer = null;
+let productSearchController = null;
+let currentProductResults = [];
+let activeProductResultIndex = -1;
+
+/*
+ * Tracks values that were automatically assigned.
+ * This prevents a later product selection from
+ * accidentally overwriting something the user
+ * manually typed.
+ */
+let autoFilledSkuValue = "";
+let autoFilledChartName = "";
+
+function escapeProductSearchHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getSkuTagCore(skuTag) {
+  return String(skuTag || "")
+    .trim()
+    .replace(/^__+/, "");
+}
+
+function getSuggestedChartName(product) {
+  /*
+   * Use the full product title by default.
+   *
+   * Change this function later if you want
+   * chart names to use only the fit name.
+   */
+  return String(product?.title || "").trim();
+}
+
+function canAutoFillInput(
+  input,
+  previousAutoValue
+) {
+  const current = String(input.value || "").trim();
+
+  return (
+    !current ||
+    current === previousAutoValue
+  );
+}
+
+function closeProductSearchResults() {
+  productSearchResults.hidden = true;
+  productSearchResults.innerHTML = "";
+  productSearchInput.setAttribute(
+    "aria-expanded",
+    "false"
+  );
+
+  currentProductResults = [];
+  activeProductResultIndex = -1;
+}
+
+function setProductSearchLoading(isLoading) {
+  productSearchLoading.hidden = !isLoading;
+}
+
+function setActiveProductResult(index) {
+  const options =
+    productSearchResults.querySelectorAll(
+      ".productSearchResult"
+    );
+
+  if (!options.length) return;
+
+  activeProductResultIndex = Math.max(
+    0,
+    Math.min(index, options.length - 1)
+  );
+
+  options.forEach((option, optionIndex) => {
+    const isActive =
+      optionIndex === activeProductResultIndex;
+
+    option.classList.toggle(
+      "is-active",
+      isActive
+    );
+
+    option.setAttribute(
+      "aria-selected",
+      isActive ? "true" : "false"
+    );
+
+    if (isActive) {
+      option.scrollIntoView({
+        block: "nearest"
+      });
+    }
+  });
+}
+
+function renderProductSearchResults(items) {
+  currentProductResults =
+    Array.isArray(items) ? items : [];
+
+  activeProductResultIndex = -1;
+
+  if (!currentProductResults.length) {
+    productSearchResults.innerHTML = `
+      <div class="productSearchEmpty">
+        No matching products found.
+      </div>
+    `;
+
+    productSearchResults.hidden = false;
+
+    productSearchInput.setAttribute(
+      "aria-expanded",
+      "true"
+    );
+
+    return;
+  }
+
+  productSearchResults.innerHTML =
+    currentProductResults
+      .map((product, index) => {
+        const skuTag =
+          product.skuTag ||
+          "No valid __SKU tag";
+
+        const matchedSku =
+          product.matchedVariantSku
+            ? `
+              <span class="productSearchResult__variant">
+                Variant SKU:
+                ${escapeProductSearchHtml(
+                  product.matchedVariantSku
+                )}
+              </span>
+            `
+            : "";
+
+        const chartStatus =
+          product.hasSizeChart
+            ? `
+              <span
+                class="
+                  productSearchResult__status
+                  productSearchResult__status--has-chart
+                "
+              >
+                Size chart assigned
+              </span>
+            `
+            : `
+              <span
+                class="
+                  productSearchResult__status
+                  productSearchResult__status--missing
+                "
+              >
+                No size chart
+              </span>
+            `;
+
+        const image = product.imageUrl
+          ? `
+            <img
+              class="productSearchResult__image"
+              src="${escapeProductSearchHtml(
+                product.imageUrl
+              )}"
+              alt=""
+              loading="lazy"
+            >
+          `
+          : `
+            <div
+              class="
+                productSearchResult__image
+                productSearchResult__image--empty
+              "
+            ></div>
+          `;
+
+        return `
+          <button
+            type="button"
+            class="productSearchResult"
+            role="option"
+            aria-selected="false"
+            data-product-index="${index}"
+          >
+            ${image}
+
+            <span class="productSearchResult__body">
+              <span class="productSearchResult__title">
+                ${escapeProductSearchHtml(
+                  product.title
+                )}
+              </span>
+
+              <span class="productSearchResult__meta">
+                ${escapeProductSearchHtml(
+                  skuTag
+                )}
+
+                <span aria-hidden="true">·</span>
+
+                ${escapeProductSearchHtml(
+                  product.status
+                )}
+              </span>
+
+              ${matchedSku}
+            </span>
+
+            ${chartStatus}
+          </button>
+        `;
+      })
+      .join("");
+
+  productSearchResults.hidden = false;
+
+  productSearchInput.setAttribute(
+    "aria-expanded",
+    "true"
+  );
+}
+
+function renderSelectedProduct(product) {
+  const skuTag =
+    product.skuTag ||
+    "No valid __SKU tag";
+
+  const chartMessage =
+    product.hasSizeChart
+      ? `
+        <div
+          class="
+            selectedProduct__notice
+            selectedProduct__notice--warning
+          "
+        >
+          This product already has a size chart${
+            product.chartName
+              ? `: <strong>${escapeProductSearchHtml(
+                  product.chartName
+                )}</strong>`
+              : "."
+          }
+        </div>
+      `
+      : `
+        <div
+          class="
+            selectedProduct__notice
+            selectedProduct__notice--success
+          "
+        >
+          This product does not currently have
+          a size chart.
+        </div>
+      `;
+
+  selectedProduct.innerHTML = `
+    <div class="selectedProduct__card">
+      ${
+        product.imageUrl
+          ? `
+            <img
+              class="selectedProduct__image"
+              src="${escapeProductSearchHtml(
+                product.imageUrl
+              )}"
+              alt=""
+            >
+          `
+          : ""
+      }
+
+      <div class="selectedProduct__body">
+        <div class="selectedProduct__title">
+          ${escapeProductSearchHtml(
+            product.title
+          )}
+        </div>
+
+        <div class="selectedProduct__meta">
+          ${escapeProductSearchHtml(
+            skuTag
+          )}
+
+          <span aria-hidden="true">·</span>
+
+          ${escapeProductSearchHtml(
+            product.status
+          )}
+        </div>
+
+        ${chartMessage}
+      </div>
+
+      <button
+        type="button"
+        class="selectedProduct__clear"
+        id="clearSelectedProduct"
+      >
+        Change
+      </button>
+    </div>
+  `;
+
+  selectedProduct.hidden = false;
+
+  document
+    .getElementById("clearSelectedProduct")
+    ?.addEventListener("click", () => {
+      selectedProduct.hidden = true;
+      selectedProduct.innerHTML = "";
+
+      productSearchInput.value = "";
+      productSearchInput.focus();
+    });
+}
+
+function selectProduct(product) {
+  if (!product) return;
+
+  const skuCore =
+    getSkuTagCore(product.skuTag);
+
+  const suggestedChartName =
+    getSuggestedChartName(product);
+
+  if (
+    skuCore &&
+    canAutoFillInput(
+      skuTagInput,
+      autoFilledSkuValue
+    )
+  ) {
+    skuTagInput.value = skuCore;
+    autoFilledSkuValue = skuCore;
+
+    skuTagInput.dispatchEvent(
+      new Event("input", {
+        bubbles: true
+      })
+    );
+  }
+
+  if (
+    suggestedChartName &&
+    canAutoFillInput(
+      chartNameInput,
+      autoFilledChartName
+    )
+  ) {
+    chartNameInput.value =
+      suggestedChartName;
+
+    autoFilledChartName =
+      suggestedChartName;
+
+    chartNameInput.dispatchEvent(
+      new Event("input", {
+        bubbles: true
+      })
+    );
+  }
+
+  productSearchInput.value =
+    product.title;
+
+  renderSelectedProduct(product);
+  closeProductSearchResults();
+}
+
+async function searchProducts(searchTerm) {
+  if (productSearchController) {
+    productSearchController.abort();
+  }
+
+  productSearchController =
+    new AbortController();
+
+  setProductSearchLoading(true);
+
+  try {
+    const response = await fetch(
+      `/api/products/search?q=${encodeURIComponent(
+        searchTerm
+      )}`,
+      {
+        signal:
+          productSearchController.signal
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error ||
+        "Could not search products."
+      );
+    }
+
+    renderProductSearchResults(
+      data.items || []
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+
+    productSearchResults.innerHTML = `
+      <div class="productSearchEmpty">
+        ${escapeProductSearchHtml(
+          error.message ||
+          "Could not search products."
+        )}
+      </div>
+    `;
+
+    productSearchResults.hidden = false;
+  } finally {
+    setProductSearchLoading(false);
+  }
+}
+
+productSearchInput?.addEventListener(
+  "input",
+  () => {
+    const searchTerm =
+      productSearchInput.value.trim();
+
+    clearTimeout(productSearchTimer);
+
+    if (searchTerm.length < 2) {
+      closeProductSearchResults();
+      setProductSearchLoading(false);
+      return;
+    }
+
+    productSearchTimer = setTimeout(
+      () => {
+        searchProducts(searchTerm);
+      },
+      300
+    );
+  }
+);
+
+productSearchInput?.addEventListener(
+  "keydown",
+  (event) => {
+    if (productSearchResults.hidden) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+
+      setActiveProductResult(
+        activeProductResultIndex + 1
+      );
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+
+      setActiveProductResult(
+        activeProductResultIndex <= 0
+          ? currentProductResults.length - 1
+          : activeProductResultIndex - 1
+      );
+    }
+
+    if (
+      event.key === "Enter" &&
+      activeProductResultIndex >= 0
+    ) {
+      event.preventDefault();
+
+      selectProduct(
+        currentProductResults[
+          activeProductResultIndex
+        ]
+      );
+    }
+
+    if (event.key === "Escape") {
+      closeProductSearchResults();
+    }
+  }
+);
+
+productSearchResults?.addEventListener(
+  "click",
+  (event) => {
+    const resultButton =
+      event.target.closest(
+        "[data-product-index]"
+      );
+
+    if (!resultButton) return;
+
+    const index = Number(
+      resultButton.dataset.productIndex
+    );
+
+    selectProduct(
+      currentProductResults[index]
+    );
+  }
+);
+
+document.addEventListener(
+  "click",
+  (event) => {
+    const container =
+      document.getElementById(
+        "productSearchContainer"
+      );
+
+    if (
+      container &&
+      !container.contains(event.target)
+    ) {
+      closeProductSearchResults();
+    }
+  }
+);
+
+/*
+ * Once the user manually changes either field,
+ * it should no longer be treated as an
+ * automatically populated value.
+ */
+skuTagInput?.addEventListener(
+  "input",
+  () => {
+    if (
+      skuTagInput.value !==
+      autoFilledSkuValue
+    ) {
+      autoFilledSkuValue = "";
+    }
+  }
+);
+
+chartNameInput?.addEventListener(
+  "input",
+  () => {
+    if (
+      chartNameInput.value !==
+      autoFilledChartName
+    ) {
+      autoFilledChartName = "";
+    }
+  }
+);
