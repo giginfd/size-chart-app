@@ -231,25 +231,52 @@ function getQueryParam(name){
 async function loadExistingChartIfAny(){
   const chartId = getQueryParam("chartId");
   const sku = getQueryParam("sku");
+  const chartName = getQueryParam("chartName");
+
+  // Prefill the SKU from the product link.
+  if (sku) {
+    const core = String(sku)
+      .replace(/^__+/, "")
+      .replace(/^_+/, "");
+
+    const skuInput = $("skuTag");
+
+    if (skuInput) {
+      skuInput.value = core;
+    }
+  }
+
+  // Prefill the chart name from the Shopify product title.
+  if (chartName) {
+    const chartNameInput = $("chartName");
+
+    if (chartNameInput) {
+      chartNameInput.value = chartName;
+    }
+  }
+
   if (!chartId && !sku) return;
 
   const url = chartId
     ? ("/api/chart?id=" + encodeURIComponent(chartId))
     : ("/api/chart?sku=" + encodeURIComponent(sku));
 
-  if (sku) {
-    const core = String(sku).replace(/^__+/, "").replace(/^_+/, "");
-    const skuInput = $("skuTag");
-    if (skuInput) skuInput.value = core;
-  }
+
 
   const res = await fetch(url);
   const json = await res.json().catch(() => ({}));
 
   if (!res.ok || !json.ok) {
-    $("status").textContent = json.error || "Could not load chart";
-    return;
+  if (sku && !chartId) {
+    $("status").textContent =
+      "New chart ready. Add the measurements and save.";
+  } else {
+    $("status").textContent =
+      json.error || "Could not load chart";
   }
+
+  return;
+}
 // Auto-fill SKU tag from the loaded chart (works for chartId + sku flows)
 if (json.skuTag) {
   const coreFromChart = String(json.skuTag).replace(/^__+/, "").replace(/^_+/, "");
