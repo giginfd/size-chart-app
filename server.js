@@ -979,9 +979,13 @@ app.get("/api/products/search", async (req, res) => {
               featuredMedia {
                 preview {
                   image {
-                    url
-                    altText
-                  }
+  url(transform: {
+    maxWidth: 96
+    maxHeight: 96
+    crop: CENTER
+  })
+  altText
+}
                 }
               }
 
@@ -1034,10 +1038,14 @@ app.get("/api/products/search", async (req, res) => {
 
                 featuredMedia {
                   preview {
-                    image {
-                      url
-                      altText
-                    }
+                   image {
+  url(transform: {
+    maxWidth: 96
+    maxHeight: 96
+    crop: CENTER
+  })
+  altText
+}
                   }
                 }
 
