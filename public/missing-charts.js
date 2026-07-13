@@ -83,9 +83,9 @@ function render() {
   if (!products.length) {
     elements.rows.innerHTML = `
       <tr>
-        <td colspan="6">
-          No products match the selected filters.
-        </td>
+        <td colspan="6" class="missing-charts-empty">
+  No products match the selected filters.
+</td>
       </tr>
     `;
 
@@ -112,9 +112,11 @@ function render() {
             <strong>${escapeHtml(product.title)}</strong>
           </td>
 
-          <td>
-            ${escapeHtml(product.status)}
-          </td>
+         <td>
+  <span class="status-badge status-badge--${String(product.status || "").toLowerCase()}">
+    ${escapeHtml(product.status)}
+  </span>
+</td>
 
           <td>
             ${escapeHtml(product.skuTag || "No SKU tag")}
