@@ -8,7 +8,7 @@ const elements = {
   status: document.getElementById("statusText"),
   search: document.getElementById("searchInput"),
   statusFilter: document.getElementById("statusFilter"),
-  groupFilter: document.getElementById("groupFilter"),
+  seasonFilter: document.getElementById("seasonFilter"),
   refresh: document.getElementById("refreshBtn")
 };
 
@@ -53,31 +53,30 @@ function getFilteredProducts() {
   const selectedStatus =
     elements.statusFilter.value;
 
-  const selectedGroup =
-    elements.groupFilter.value;
+  const selectedSeason =
+    elements.seasonFilter.value;
 
   return state.products.filter((product) => {
     const matchesStatus =
       !selectedStatus ||
       product.status === selectedStatus;
 
-    const productGroups = Array.isArray(product.productGroups)
-      ? product.productGroups
+    const seasons = Array.isArray(product.seasons)
+      ? product.seasons
       : [];
 
-    let matchesGroup = true;
+    let matchesSeason = true;
 
-    if (selectedGroup === "UNTAGGED") {
-      matchesGroup = productGroups.length === 0;
-    } else if (selectedGroup) {
-      matchesGroup = productGroups.includes(selectedGroup);
+    if (selectedSeason === "UNTAGGED") {
+      matchesSeason = seasons.length === 0;
+    } else if (selectedSeason) {
+      matchesSeason = seasons.includes(selectedSeason);
     }
 
     const searchableText = [
       product.title,
       product.handle,
-      product.skuTag,
-      ...(product.tags || [])
+      product.skuTag
     ]
       .join(" ")
       .toLowerCase();
@@ -88,7 +87,7 @@ function getFilteredProducts() {
 
     return (
       matchesStatus &&
-      matchesGroup &&
+      matchesSeason &&
       matchesSearch
     );
   });
@@ -262,7 +261,8 @@ async function fetchAllMissingProducts() {
 
 elements.search.addEventListener("input", render);
 elements.statusFilter.addEventListener("change", render);
-elements.groupFilter.addEventListener("change", render);
+elements.seasonFilter.addEventListener("change", render);
+
 elements.refresh.addEventListener(
   "click",
   fetchAllMissingProducts
