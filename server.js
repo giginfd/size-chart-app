@@ -1103,10 +1103,13 @@ for (const tag of tags) {
    * __W03138820
    * __1909673SM
    */
-  if (/^[A-Z0-9]+$/i.test(core)) {
-    skuTag = normalizedTag;
-    break;
-  }
+ if (
+  /^[A-Z0-9]+$/i.test(core) &&
+  /\d/.test(core)
+) {
+  skuTag = normalizedTag;
+  break;
+}
 }
 
 /*
