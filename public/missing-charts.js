@@ -8,6 +8,7 @@ const elements = {
   status: document.getElementById("statusText"),
   search: document.getElementById("searchInput"),
   statusFilter: document.getElementById("statusFilter"),
+  groupFilter: document.getElementById("groupFilter"),
   refresh: document.getElementById("refreshBtn")
 };
 
@@ -49,17 +50,34 @@ function getFilteredProducts() {
     .trim()
     .toLowerCase();
 
-  const selectedStatus = elements.statusFilter.value;
+  const selectedStatus =
+    elements.statusFilter.value;
+
+  const selectedGroup =
+    elements.groupFilter.value;
 
   return state.products.filter((product) => {
     const matchesStatus =
       !selectedStatus ||
       product.status === selectedStatus;
 
+    const productGroups = Array.isArray(product.productGroups)
+      ? product.productGroups
+      : [];
+
+    let matchesGroup = true;
+
+    if (selectedGroup === "UNTAGGED") {
+      matchesGroup = productGroups.length === 0;
+    } else if (selectedGroup) {
+      matchesGroup = productGroups.includes(selectedGroup);
+    }
+
     const searchableText = [
       product.title,
       product.handle,
-      product.skuTag
+      product.skuTag,
+      ...(product.tags || [])
     ]
       .join(" ")
       .toLowerCase();
@@ -68,10 +86,13 @@ function getFilteredProducts() {
       !searchQuery ||
       searchableText.includes(searchQuery);
 
-    return matchesStatus && matchesSearch;
+    return (
+      matchesStatus &&
+      matchesGroup &&
+      matchesSearch
+    );
   });
 }
-
 function render() {
   const products = getFilteredProducts();
 
@@ -241,6 +262,7 @@ async function fetchAllMissingProducts() {
 
 elements.search.addEventListener("input", render);
 elements.statusFilter.addEventListener("change", render);
+elements.groupFilter.addEventListener("change", render);
 elements.refresh.addEventListener(
   "click",
   fetchAllMissingProducts
