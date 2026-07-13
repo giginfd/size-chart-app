@@ -999,26 +999,37 @@ app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
   }
 });
 
-
-// ===============================
-// SIZE CHART AUDIT API (paginated)
-// ===============================
+// ======================================================
+// PRODUCTS MISSING SIZE CHARTS: ACTIVE + DRAFT, PAGINATED
+// ======================================================
 app.get("/api/audit", async (req, res) => {
   try {
     const cursor = req.query.cursor || null;
 
     const query = `
       query Audit($cursor: String) {
-        products(first: 100, after: $cursor) {
+        products(
+          first: 100
+          after: $cursor
+          query: "status:active,draft"
+          sortKey: UPDATED_AT
+          reverse: true
+        ) {
           edges {
             cursor
             node {
+              id
               title
               handle
+              status
+              updatedAt
               tags
+
               metafield(namespace: "custom", key: "size_chart") {
+                id
                 reference {
                   ... on Metaobject {
+                    id
                     handle
                     displayName
                   }
@@ -1026,47 +1037,93 @@ app.get("/api/audit", async (req, res) => {
               }
             }
           }
-          pageInfo { hasNextPage }
+
+          pageInfo {
+            hasNextPage
+          }
         }
       }
     `;
 
     const data = await shopifyGraphQL(query, { cursor });
-
     const edges = data.products.edges || [];
 
-    const items = edges.map(e => {
-      const p = e.node;
-      const chartRef = p.metafield && p.metafield.reference ? p.metafield.reference : null;
+    const allItems = edges.map((edge) => {
+      const product = edge.node;
+      const chartReference =
+        product.metafield?.reference || null;
 
-      // prefer numeric __SKU tags
+      // Prefer a tag formatted like __101110006.
       let skuTag = "";
-      for (const t of (p.tags || [])) {
-        if (t.startsWith("__")) {
-          const core = t.replace(/^__+/, "");
-          if (/^\d+$/.test(core)) { skuTag = t; break; }
+
+      for (const tag of product.tags || []) {
+        if (!tag.startsWith("__")) continue;
+
+        const core = tag.replace(/^__+/, "");
+
+        if (/^\d+$/.test(core)) {
+          skuTag = tag;
+          break;
         }
       }
-      if (!skuTag) skuTag = (p.tags || []).find(t => t.startsWith("__")) || "";
+
+      // Fall back to any tag beginning with "__".
+      if (!skuTag) {
+        skuTag =
+          (product.tags || []).find((tag) =>
+            tag.startsWith("__")
+          ) || "";
+      }
 
       return {
-        title: p.title,
-        handle: p.handle,
+        id: product.id,
+        title: product.title,
+        handle: product.handle,
+        status: product.status,
+        updatedAt: product.updatedAt,
         skuTag,
-        chartName: chartRef ? (chartRef.displayName || "") : "",
-        chartHandle: chartRef ? (chartRef.handle || "") : "",
+
+        hasSizeChart: Boolean(chartReference),
+
+        chartName: chartReference
+          ? chartReference.displayName || ""
+          : "",
+
+        chartHandle: chartReference
+          ? chartReference.handle || ""
+          : ""
       };
     });
 
+    // Return only products without a valid size-chart reference.
+    const missingItems = allItems.filter(
+      (item) => !item.hasSizeChart
+    );
+
     res.json({
       ok: true,
-      items,
-      nextCursor: edges.length ? edges[edges.length - 1].cursor : null,
-      hasNextPage: !!data.products.pageInfo.hasNextPage
+      items: missingItems,
+
+      // Number of active/draft products examined on this page.
+      scannedCount: allItems.length,
+
+      // Number missing a chart on this page.
+      missingCount: missingItems.length,
+
+      nextCursor: edges.length
+        ? edges[edges.length - 1].cursor
+        : null,
+
+      hasNextPage:
+        Boolean(data.products.pageInfo.hasNextPage)
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false, error: String(e.message || e) });
+  } catch (error) {
+    console.error("Size-chart audit error:", error);
+
+    res.status(500).json({
+      ok: false,
+      error: String(error.message || error)
+    });
   }
 });
 
