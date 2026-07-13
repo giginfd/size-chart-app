@@ -333,3 +333,216 @@ await copyText(text);
     }
   });
 })();
+
+const SHOPIFY_ROW_LABELS = {
+  "tag size": "TAGSIZE",
+  "tagsize": "TAGSIZE",
+  "waist": "WAIST",
+  "hips": "HIPS",
+  "hip": "HIPS",
+  "front rise": "FRONTRISE",
+  "frontrise": "FRONTRISE",
+  "back rise": "BACKRISE",
+  "backrise": "BACKRISE",
+  "upper thigh": "THIGH",
+  "thigh": "THIGH",
+  "knee": "KNEE",
+  "leg opening": "LEG OPENING",
+  "legopening": "LEG OPENING",
+  "inseam": "INSEAM"
+};
+
+function escapeShopifyHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normalizeShopifyLabel(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  return SHOPIFY_ROW_LABELS[normalized] || String(value ?? "").trim().toUpperCase();
+}
+
+function formatShopifyMeasurement(value, isHeaderRow) {
+  const cleaned = String(value ?? "")
+    .trim()
+    .replace(/["”“]/g, "");
+
+  if (!cleaned || isHeaderRow) {
+    return cleaned;
+  }
+
+  return `${cleaned}"`;
+}
+
+/**
+ * Attempts to read the editor grid as rows of input values.
+ *
+ * Expected grid structure:
+ * - Each visual row contains input or select elements.
+ * - First field is the measurement label.
+ * - Remaining fields are sizes or measurements.
+ *
+ * Adjust the selectors here if your grid uses a more specific row class.
+ */
+function getChartRowsFromGrid() {
+  const grid = document.getElementById("grid");
+
+  if (!grid) {
+    throw new Error("Chart grid was not found.");
+  }
+
+  const possibleRows = Array.from(
+    grid.querySelectorAll("tr, .grid-row, .chart-row, [data-row]")
+  );
+
+  const rows = possibleRows
+    .map(row => {
+      const fields = Array.from(
+        row.querySelectorAll("input, select, textarea")
+      );
+
+      return fields.map(field => field.value.trim());
+    })
+    .filter(row => row.length > 1);
+
+  if (rows.length) {
+    return rows;
+  }
+
+  /*
+   * Fallback for grids constructed as a flat collection of inputs.
+   * Set data-row and data-column attributes when rendering the grid
+   * for the most reliable export.
+   */
+  const indexedFields = Array.from(
+    grid.querySelectorAll("[data-row][data-column]")
+  );
+
+  if (!indexedFields.length) {
+    throw new Error("No editable chart values were found.");
+  }
+
+  const rowMap = new Map();
+
+  indexedFields.forEach(field => {
+    const rowIndex = Number(field.dataset.row);
+    const columnIndex = Number(field.dataset.column);
+
+    if (!rowMap.has(rowIndex)) {
+      rowMap.set(rowIndex, []);
+    }
+
+    rowMap.get(rowIndex)[columnIndex] = field.value.trim();
+  });
+
+  return Array.from(rowMap.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([, row]) => row);
+}
+
+function createShopifySizeChartHtml(rows) {
+  if (!Array.isArray(rows) || rows.length < 2) {
+    throw new Error("The chart needs a tag-size row and at least one measurement row.");
+  }
+
+  const columnCount = Math.max(...rows.map(row => row.length));
+
+  if (columnCount < 2) {
+    throw new Error("The chart needs at least one size column.");
+  }
+
+  const normalizedRows = rows.map(row => {
+    const padded = [...row];
+
+    while (padded.length < columnCount) {
+      padded.push("");
+    }
+
+    return padded;
+  });
+
+  /*
+   * Use a wider first column for labels.
+   * The remaining width is divided equally among all sizes.
+   */
+  const firstColumnWidth = 14;
+  const measurementColumnWidth =
+    (100 - firstColumnWidth) / (columnCount - 1);
+
+  const html = [];
+
+  html.push('<table style="width: 100%;" width="575">');
+  html.push("<tbody>");
+
+  normalizedRows.forEach((row, rowIndex) => {
+    html.push("<tr>");
+
+    row.forEach((cell, columnIndex) => {
+      const width =
+        columnIndex === 0
+          ? firstColumnWidth
+          : measurementColumnWidth;
+
+      let content;
+
+      if (columnIndex === 0) {
+        content = normalizeShopifyLabel(cell);
+      } else {
+        content = formatShopifyMeasurement(cell, rowIndex === 0);
+      }
+
+      content = escapeShopifyHtml(content);
+
+      if (rowIndex === 0) {
+        content = `<strong>${content}</strong>`;
+      }
+
+      html.push(
+        `<td style="width: ${width.toFixed(4)}%;">${content}</td>`
+      );
+    });
+
+    html.push("</tr>");
+  });
+
+  html.push("</tbody>");
+  html.push("</table>");
+
+  return html.join("\n");
+}
+
+async function copyShopifyHtml() {
+  const status = document.getElementById("copyHtmlStatus");
+
+  try {
+    const rows = getChartRowsFromGrid();
+    const html = createShopifySizeChartHtml(rows);
+
+    await navigator.clipboard.writeText(html);
+
+    if (status) {
+      status.textContent = "Shopify HTML copied.";
+    }
+  } catch (error) {
+    console.error(error);
+
+    if (status) {
+      status.textContent =
+        error instanceof Error
+          ? error.message
+          : "Could not create Shopify HTML.";
+    }
+  }
+}
+
+document
+  .getElementById("copyHtmlBtn")
+  ?.addEventListener("click", copyShopifyHtml);
