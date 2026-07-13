@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
@@ -10,77 +11,508 @@
   <title>Products Missing Size Charts</title>
 
   <link rel="stylesheet" href="/style.css">
+
+  <style>
+    :root {
+      --audit-bg: #f4f4f1;
+      --audit-panel: #ffffff;
+      --audit-text: #171717;
+      --audit-muted: #6b6b66;
+      --audit-border: #deded8;
+      --audit-border-dark: #bdbdb5;
+      --audit-accent: #161616;
+      --audit-danger-bg: #fff1ef;
+      --audit-danger-text: #9c2d20;
+      --audit-draft-bg: #f1f0ff;
+      --audit-draft-text: #5146a8;
+      --audit-active-bg: #eaf7ed;
+      --audit-active-text: #246c36;
+      --audit-radius: 10px;
+      --audit-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--audit-bg);
+      color: var(--audit-text);
+    }
+
+    .missing-charts-page {
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+
+    .missing-charts-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      margin-bottom: 24px;
+    }
+
+    .missing-charts-heading {
+      max-width: 760px;
+    }
+
+    .missing-charts-eyebrow {
+      margin: 0 0 8px;
+      color: var(--audit-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .missing-charts-title {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+    }
+
+    .missing-charts-description {
+      max-width: 640px;
+      margin: 12px 0 0;
+      color: var(--audit-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .missing-charts-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .missing-charts-nav .nfd-btn {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 15px;
+      border: 1px solid var(--audit-border-dark);
+      border-radius: 7px;
+      background: var(--audit-panel);
+      color: var(--audit-text);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      cursor: pointer;
+      transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        transform 150ms ease;
+    }
+
+    .missing-charts-nav .nfd-btn:hover {
+      background: #ecece7;
+      border-color: #999991;
+    }
+
+    .missing-charts-nav .nfd-btn:active {
+      transform: translateY(1px);
+    }
+
+    .missing-charts-nav .nfd-btn--primary {
+      margin-left: auto;
+      border-color: var(--audit-accent);
+      background: var(--audit-accent);
+      color: #ffffff;
+    }
+
+    .missing-charts-nav .nfd-btn--primary:hover {
+      background: #333333;
+      border-color: #333333;
+    }
+
+    .missing-charts-panel {
+      overflow: hidden;
+      border: 1px solid var(--audit-border);
+      border-radius: var(--audit-radius);
+      background: var(--audit-panel);
+      box-shadow: var(--audit-shadow);
+    }
+
+    .missing-charts-controls {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) 220px;
+      gap: 16px;
+      align-items: end;
+      padding: 20px;
+      border-bottom: 1px solid var(--audit-border);
+    }
+
+    .missing-charts-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .missing-charts-field-label {
+      color: var(--audit-muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .missing-charts-input,
+    .missing-charts-select {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--audit-border-dark);
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--audit-text);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+    }
+
+    .missing-charts-input {
+      padding: 0 14px;
+    }
+
+    .missing-charts-select {
+      padding: 0 38px 0 12px;
+      cursor: pointer;
+    }
+
+    .missing-charts-input:focus,
+    .missing-charts-select:focus {
+      border-color: #333333;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .missing-charts-summary {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--audit-border);
+      color: var(--audit-muted);
+      font-size: 14px;
+    }
+
+    .missing-charts-summary::before {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      margin-right: 9px;
+      border-radius: 50%;
+      background: #d95d4f;
+      content: "";
+    }
+
+    .missing-charts-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+
+    .missing-charts-table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    .missing-charts-table th,
+    .missing-charts-table td {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--audit-border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .missing-charts-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8f8f5;
+      color: var(--audit-muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .missing-charts-table td {
+      font-size: 14px;
+    }
+
+    .missing-charts-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .missing-charts-table tbody tr:hover {
+      background: #fafaf7;
+    }
+
+    .missing-charts-table th:first-child,
+    .missing-charts-table td:first-child {
+      width: 31%;
+    }
+
+    .missing-charts-table th:nth-child(2),
+    .missing-charts-table td:nth-child(2) {
+      width: 100px;
+    }
+
+    .missing-charts-table th:nth-child(3),
+    .missing-charts-table td:nth-child(3) {
+      width: 140px;
+    }
+
+    .missing-charts-table th:nth-child(5),
+    .missing-charts-table td:nth-child(5) {
+      width: 130px;
+      white-space: nowrap;
+    }
+
+    .missing-charts-table th:last-child,
+    .missing-charts-table td:last-child {
+      width: 220px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .missing-charts-table td:nth-child(3),
+    .missing-charts-table td:nth-child(4) {
+      color: var(--audit-muted);
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+      font-size: 12px;
+    }
+
+    .missing-charts-table strong {
+      display: block;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .nfd-row-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+
+    .nfd-row-actions .nfd-btn {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 11px;
+      border: 1px solid var(--audit-border-dark);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--audit-text);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .nfd-row-actions .nfd-btn:first-child {
+      border-color: var(--audit-accent);
+      background: var(--audit-accent);
+      color: #ffffff;
+    }
+
+    .nfd-row-actions .nfd-btn:hover {
+      opacity: 0.78;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .status-badge--active {
+      background: var(--audit-active-bg);
+      color: var(--audit-active-text);
+    }
+
+    .status-badge--draft {
+      background: var(--audit-draft-bg);
+      color: var(--audit-draft-text);
+    }
+
+    .missing-charts-empty {
+      padding: 40px 20px !important;
+      color: var(--audit-muted);
+      text-align: center !important;
+    }
+
+    #refreshBtn:disabled {
+      cursor: wait;
+      opacity: 0.55;
+    }
+
+    @media (max-width: 800px) {
+      .missing-charts-page {
+        width: min(100% - 24px, 1440px);
+        padding-top: 24px;
+      }
+
+      .missing-charts-header {
+        display: block;
+      }
+
+      .missing-charts-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .missing-charts-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .missing-charts-nav .nfd-btn {
+        width: 100%;
+      }
+
+      .missing-charts-nav .nfd-btn--primary {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .missing-charts-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .missing-charts-title {
+        font-size: 32px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <main class="nfd-shell">
-    <header class="nfd-header">
-      <div>
-        <p class="nfd-eyebrow">Naked & Famous Denim</p>
+  <main class="missing-charts-page">
+    <header class="missing-charts-header">
+      <div class="missing-charts-heading">
+        <p class="missing-charts-eyebrow">
+          Naked &amp; Famous Denim
+        </p>
 
-        <h1>Products Missing Size Charts</h1>
+        <h1 class="missing-charts-title">
+          Products Missing Size Charts
+        </h1>
 
-        <p>
-          Active and draft Shopify products without an associated size chart.
+        <p class="missing-charts-description">
+          Review active and draft Shopify products that do not have an
+          associated size chart. Search by product name, handle or SKU tag,
+          then open Shopify or start creating a chart.
         </p>
       </div>
     </header>
 
-    <div class="nfd-toolbar">
-      <a class="nfd-btn nfd-btn--secondary" href="/">
+    <nav class="missing-charts-nav" aria-label="Size chart tools">
+      <a class="nfd-btn" href="/">
         Home
       </a>
 
-      <a class="nfd-btn nfd-btn--secondary" href="/index.html">
+      <a class="nfd-btn" href="/index.html">
         Size Chart Editor
+      </a>
+
+      <a class="nfd-btn" href="/audit.html">
+        Size Chart Audit
       </a>
 
       <button
         id="refreshBtn"
-        class="nfd-btn"
+        class="nfd-btn nfd-btn--primary"
         type="button"
       >
-        Refresh
+        Refresh Products
       </button>
-    </div>
+    </nav>
 
-    <section class="nfd-panel">
-      <div class="nfd-filter-row">
-        <label>
-          Search
+    <section class="missing-charts-panel">
+      <div class="missing-charts-controls">
+        <label class="missing-charts-field">
+          <span class="missing-charts-field-label">
+            Search products
+          </span>
 
           <input
             id="searchInput"
+            class="missing-charts-input"
             type="search"
-            placeholder="Product, handle or SKU tag"
+            placeholder="Search product, handle or SKU tag"
+            autocomplete="off"
           >
         </label>
 
-        <label>
-          Status
+        <label class="missing-charts-field">
+          <span class="missing-charts-field-label">
+            Product status
+          </span>
 
-          <select id="statusFilter">
-            <option value="">Active and draft</option>
-            <option value="ACTIVE">Active</option>
-            <option value="DRAFT">Draft</option>
+          <select
+            id="statusFilter"
+            class="missing-charts-select"
+          >
+            <option value="">
+              Active and draft
+            </option>
+
+            <option value="ACTIVE">
+              Active only
+            </option>
+
+            <option value="DRAFT">
+              Draft only
+            </option>
           </select>
         </label>
       </div>
 
-      <p id="statusText" class="nfd-status">
+      <p
+        id="statusText"
+        class="missing-charts-summary"
+        aria-live="polite"
+      >
         Loading products…
       </p>
 
-      <div class="nfd-table-wrap">
-        <table class="nfd-table">
+      <div class="missing-charts-table-wrap">
+        <table class="missing-charts-table">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Status</th>
-              <th>SKU Tag</th>
-              <th>Handle</th>
-              <th>Updated</th>
-              <th>Actions</th>
+              <th scope="col">Product</th>
+              <th scope="col">Status</th>
+              <th scope="col">SKU Tag</th>
+              <th scope="col">Handle</th>
+              <th scope="col">Updated</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
 
