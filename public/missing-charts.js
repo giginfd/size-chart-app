@@ -122,9 +122,17 @@ function render() {
       const sku = String(product.skuTag || "")
         .replace(/^__+/, "");
 
-      const editorUrl = sku
-        ? `/index.html?sku=${encodeURIComponent(sku)}`
-        : "/index.html";
+  const editorParams = new URLSearchParams();
+
+if (sku) {
+  editorParams.set("sku", sku);
+}
+
+if (product.title) {
+  editorParams.set("chartName", product.title);
+}
+
+const editorUrl = `/index.html?${editorParams.toString()}`;
 
       return `
         <tr>
