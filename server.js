@@ -1075,24 +1075,41 @@ app.get("/api/audit", async (req, res) => {
           ) || "";
       }
 
-      return {
-        id: product.id,
-        title: product.title,
-        handle: product.handle,
-        status: product.status,
-        updatedAt: product.updatedAt,
-        skuTag,
+      const tags = Array.isArray(product.tags)
+  ? product.tags
+  : [];
 
-        hasSizeChart: Boolean(chartReference),
+const productGroups = [
+  "__CORE",
+  "__SS26",
+  "__FW26",
+  "__SS25",
+  "__FW25",
+  "__SS24",
+  "__FW24"
+].filter((tag) => tags.includes(tag));
 
-        chartName: chartReference
-          ? chartReference.displayName || ""
-          : "",
+return {
+  id: product.id,
+  title: product.title,
+  handle: product.handle,
+  status: product.status,
+  updatedAt: product.updatedAt,
+  skuTag,
 
-        chartHandle: chartReference
-          ? chartReference.handle || ""
-          : ""
-      };
+  tags,
+  productGroups,
+
+  hasSizeChart: Boolean(chartReference),
+
+  chartName: chartReference
+    ? chartReference.displayName || ""
+    : "",
+
+  chartHandle: chartReference
+    ? chartReference.handle || ""
+    : ""
+};
     });
 
     // Return only products without a valid size-chart reference.
