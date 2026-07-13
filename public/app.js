@@ -228,16 +228,17 @@ function getQueryParam(name){
   const u = new URL(window.location.href);
   return u.searchParams.get(name);
 }
-async function loadExistingChartIfAny(){
+async function loadExistingChartIfAny() {
   const chartId = getQueryParam("chartId");
   const sku = getQueryParam("sku");
   const chartName = getQueryParam("chartName");
+  const mode = getQueryParam("mode");
 
-  // Prefill the SKU from the product link.
+  // Prefill SKU from the product link.
   if (sku) {
     const core = String(sku)
-      .replace(/^__+/, "")
-      .replace(/^_+/, "");
+      .replace(/^_+/, "")
+      .trim();
 
     const skuInput = $("skuTag");
 
@@ -246,7 +247,7 @@ async function loadExistingChartIfAny(){
     }
   }
 
-  // Prefill the chart name from the Shopify product title.
+  // Prefill chart name from the Shopify product title.
   if (chartName) {
     const chartNameInput = $("chartName");
 
@@ -255,54 +256,85 @@ async function loadExistingChartIfAny(){
     }
   }
 
+  /*
+   * A Create Chart link should not search for or load
+   * an existing chart. This prevents another chart from
+   * overwriting the supplied SKU and product name.
+   */
+  if (mode === "create") {
+    $("status").textContent =
+      "New chart ready. Add the measurements and save.";
+    return;
+  }
+
   if (!chartId && !sku) return;
 
   const url = chartId
-    ? ("/api/chart?id=" + encodeURIComponent(chartId))
-    : ("/api/chart?sku=" + encodeURIComponent(sku));
-
-
+    ? "/api/chart?id=" + encodeURIComponent(chartId)
+    : "/api/chart?sku=" + encodeURIComponent(sku);
 
   const res = await fetch(url);
   const json = await res.json().catch(() => ({}));
 
   if (!res.ok || !json.ok) {
-  if (sku && !chartId) {
-    $("status").textContent =
-      "New chart ready. Add the measurements and save.";
-  } else {
     $("status").textContent =
       json.error || "Could not load chart";
+    return;
   }
 
-  return;
-}
-// Auto-fill SKU tag from the loaded chart (works for chartId + sku flows)
-if (json.skuTag) {
-  const coreFromChart = String(json.skuTag).replace(/^__+/, "").replace(/^_+/, "");
-  const skuInput = $("skuTag");
-  if (skuInput) skuInput.value = coreFromChart;
-}
+  // Fill SKU from an existing chart.
+  if (json.skuTag) {
+    const coreFromChart = String(json.skuTag)
+      .replace(/^_+/, "")
+      .trim();
+
+    const skuInput = $("skuTag");
+
+    if (skuInput) {
+      skuInput.value = coreFromChart;
+    }
+  }
 
   let columns = [];
   let rows = [];
-  try { columns = JSON.parse(json.columns_json || "[]"); } catch(e) {}
-  try { rows = JSON.parse(json.rows_json || "[]"); } catch(e) {}
 
-  const sizes = (columns || []).slice(1);
-  const gridRows = (rows || []).map(r => ({
-    label: r.label,
-    values: Array.isArray(r.values) ? r.values : []
+  try {
+    columns = JSON.parse(json.columns_json || "[]");
+  } catch (error) {
+    console.error("Could not parse chart columns:", error);
+  }
+
+  try {
+    rows = JSON.parse(json.rows_json || "[]");
+  } catch (error) {
+    console.error("Could not parse chart rows:", error);
+  }
+
+  const sizes = columns.slice(1);
+
+  const gridRows = rows.map((row) => ({
+    label: row.label,
+    values: Array.isArray(row.values)
+      ? row.values
+      : []
   }));
 
   current.sizes = sizes;
   current.rows = gridRows;
 
-  if ($("chartName")) $("chartName").value = json.chartName || "";
-  if ($("footer")) $("footer").value = json.footer || "";
+  if ($("chartName")) {
+    $("chartName").value =
+      json.chartName || chartName || "";
+  }
 
-renderGrid();
-$("status").textContent = "Loaded existing chart.";
+  if ($("footer")) {
+    $("footer").value = json.footer || "";
+  }
+
+  renderGrid();
+
+  $("status").textContent =
+    "Loaded existing chart.";
 }
 
 async function init(){
