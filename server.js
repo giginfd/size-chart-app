@@ -1002,6 +1002,9 @@ app.post("/api/image-import", upload.array("files", 50), async (req, res) => {
 // ======================================================
 // PRODUCTS MISSING SIZE CHARTS: ACTIVE + DRAFT, PAGINATED
 // ======================================================
+// ======================================================
+// PRODUCTS MISSING SIZE CHARTS: ACTIVE + DRAFT, PAGINATED
+// ======================================================
 app.get("/api/audit", async (req, res) => {
   try {
     const cursor = req.query.cursor || null;
@@ -1017,6 +1020,7 @@ app.get("/api/audit", async (req, res) => {
         ) {
           edges {
             cursor
+
             node {
               id
               title
@@ -1027,6 +1031,7 @@ app.get("/api/audit", async (req, res) => {
 
               metafield(namespace: "custom", key: "size_chart") {
                 id
+
                 reference {
                   ... on Metaobject {
                     id
@@ -1045,19 +1050,34 @@ app.get("/api/audit", async (req, res) => {
       }
     `;
 
-    const data = await shopifyGraphQL(query, { cursor });
+    const data = await shopifyGraphQL(query, {
+      cursor
+    });
+
     const edges = data.products.edges || [];
 
     const allItems = edges.map((edge) => {
       const product = edge.node;
+
+      const tags = Array.isArray(product.tags)
+        ? product.tags
+        : [];
+
       const chartReference =
         product.metafield?.reference || null;
 
-      // Prefer a tag formatted like __101110006.
+      /*
+       * SKU tag
+       *
+       * Keep this separate from season tags.
+       * Preferred format: __101110006
+       */
       let skuTag = "";
 
-      for (const tag of product.tags || []) {
-        if (!tag.startsWith("__")) continue;
+      for (const tag of tags) {
+        if (!tag.startsWith("__")) {
+          continue;
+        }
 
         const core = tag.replace(/^__+/, "");
 
@@ -1067,52 +1087,67 @@ app.get("/api/audit", async (req, res) => {
         }
       }
 
-      // Fall back to any tag beginning with "__".
+      /*
+       * Fallback for older or unusual SKU tags.
+       *
+       * Exclude season tags so __CORE or __SS26
+       * can never accidentally become the SKU tag.
+       */
+      const knownSeasonTags = new Set([
+        "__CORE",
+        "__SS26",
+        "__FW26",
+        "__SS25",
+        "__FW25",
+        "__SS24",
+        "__FW24"
+      ]);
+
       if (!skuTag) {
         skuTag =
-          (product.tags || []).find((tag) =>
-            tag.startsWith("__")
+          tags.find(
+            (tag) =>
+              tag.startsWith("__") &&
+              !knownSeasonTags.has(tag.toUpperCase())
           ) || "";
       }
 
-      const tags = Array.isArray(product.tags)
-  ? product.tags
-  : [];
+      /*
+       * Seasons
+       *
+       * These are additional Shopify tags and are
+       * completely separate from the SKU tag.
+       */
+      const seasons = tags
+        .map((tag) => String(tag).toUpperCase())
+        .filter((tag) => knownSeasonTags.has(tag));
 
-const productGroups = [
-  "__CORE",
-  "__SS26",
-  "__FW26",
-  "__SS25",
-  "__FW25",
-  "__SS24",
-  "__FW24"
-].filter((tag) => tags.includes(tag));
+      return {
+        id: product.id,
+        title: product.title,
+        handle: product.handle,
+        status: product.status,
+        updatedAt: product.updatedAt,
 
-return {
-  id: product.id,
-  title: product.title,
-  handle: product.handle,
-  status: product.status,
-  updatedAt: product.updatedAt,
-  skuTag,
+        skuTag,
+        seasons,
 
-  tags,
-  productGroups,
+        hasSizeChart: Boolean(chartReference),
 
-  hasSizeChart: Boolean(chartReference),
+        chartName: chartReference
+          ? chartReference.displayName || ""
+          : "",
 
-  chartName: chartReference
-    ? chartReference.displayName || ""
-    : "",
-
-  chartHandle: chartReference
-    ? chartReference.handle || ""
-    : ""
-};
+        chartHandle: chartReference
+          ? chartReference.handle || ""
+          : ""
+      };
     });
 
-    // Return only products without a valid size-chart reference.
+    /*
+     * Only return products that do not have
+     * a valid custom.size_chart reference.
+     */
     const missingItems = allItems.filter(
       (item) => !item.hasSizeChart
     );
@@ -1121,10 +1156,7 @@ return {
       ok: true,
       items: missingItems,
 
-      // Number of active/draft products examined on this page.
       scannedCount: allItems.length,
-
-      // Number missing a chart on this page.
       missingCount: missingItems.length,
 
       nextCursor: edges.length
@@ -1135,7 +1167,10 @@ return {
         Boolean(data.products.pageInfo.hasNextPage)
     });
   } catch (error) {
-    console.error("Size-chart audit error:", error);
+    console.error(
+      "Size-chart audit error:",
+      error
+    );
 
     res.status(500).json({
       ok: false,
