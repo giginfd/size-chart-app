@@ -220,6 +220,49 @@ function normalizeSkuTag(input) {
   return raw.startsWith("__") ? raw : `__${raw}`;
 }
 
+const KNOWN_SEASON_TAGS = new Set([
+  "__CORE",
+  "__SS26",
+  "__FW26",
+  "__SS25",
+  "__FW25",
+  "__SS24",
+  "__FW24"
+]);
+
+function extractSkuTagFromTags(tags) {
+  const normalizedTags = Array.isArray(tags)
+    ? tags.map((tag) => String(tag || "").trim())
+    : [];
+
+  for (const tag of normalizedTags) {
+    if (!tag.startsWith("__")) continue;
+    if (KNOWN_SEASON_TAGS.has(tag.toUpperCase())) continue;
+
+    const core = tag.replace(/^__+/, "");
+
+    /*
+     * Accept:
+     * __101110006
+     * __N03882820
+     * __W03138820
+     * __1909673SM
+     *
+     * Reject values such as:
+     * __NEW
+     * __CORE
+     */
+    if (
+      /^[A-Z0-9]+$/i.test(core) &&
+      /\d/.test(core)
+    ) {
+      return tag;
+    }
+  }
+
+  return "";
+}
+
 function handleFromSkuTag(skuTag) {
   // Handle must be stable and URL-safe. Keep it simple.
   // "__101110006" -> "sku-101110006"
@@ -885,7 +928,297 @@ app.post("/api/retailer-list/mark-synced", express.json(), (req, res) => {
     return res.status(500).json({ ok: false, error: err.message });
   }
 });
+// ==========================================
+// SEARCH PRODUCTS FOR THE SIZE CHART EDITOR
+// ==========================================
+app.get("/api/products/search", async (req, res) => {
+  try {
+    const searchTerm = String(req.query.q || "").trim();
 
+    if (searchTerm.length < 2) {
+      return res.json({
+        ok: true,
+        items: []
+      });
+    }
+
+    /*
+     * Remove punctuation that could interfere with Shopify's
+     * product-search syntax while preserving useful SKU characters.
+     */
+    const safeTerm = searchTerm
+      .replace(/^__+/, "")
+      .replace(/["']/g, "")
+      .trim();
+
+    if (!safeTerm) {
+      return res.json({
+        ok: true,
+        items: []
+      });
+    }
+
+    const query = `
+      query SearchSizeChartProducts(
+        $productQuery: String!
+        $variantQuery: String!
+      ) {
+        products(
+          first: 20
+          query: $productQuery
+          sortKey: TITLE
+        ) {
+          edges {
+            node {
+              id
+              title
+              handle
+              status
+              tags
+
+              featuredMedia {
+                preview {
+                  image {
+                    url
+                    altText
+                  }
+                }
+              }
+
+              variants(first: 10) {
+                edges {
+                  node {
+                    id
+                    title
+                    sku
+                  }
+                }
+              }
+
+              metafield(
+                namespace: "custom"
+                key: "size_chart"
+              ) {
+                reference {
+                  ... on Metaobject {
+                    id
+                    handle
+                    displayName
+                    fields {
+                      key
+                      value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        productVariants(
+          first: 20
+          query: $variantQuery
+        ) {
+          edges {
+            node {
+              id
+              title
+              sku
+
+              product {
+                id
+                title
+                handle
+                status
+                tags
+
+                featuredMedia {
+                  preview {
+                    image {
+                      url
+                      altText
+                    }
+                  }
+                }
+
+                variants(first: 10) {
+                  edges {
+                    node {
+                      id
+                      title
+                      sku
+                    }
+                  }
+                }
+
+                metafield(
+                  namespace: "custom"
+                  key: "size_chart"
+                ) {
+                  reference {
+                    ... on Metaobject {
+                      id
+                      handle
+                      displayName
+                      fields {
+                        key
+                        value
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await shopifyGraphQL(query, {
+      productQuery: [
+        `title:*${safeTerm}*`,
+        `handle:*${safeTerm}*`,
+        `tag:*${safeTerm}*`
+      ].join(" OR "),
+
+      variantQuery: `sku:*${safeTerm}*`
+    });
+
+    const productMap = new Map();
+
+    function addProduct(product, matchedVariantSku = "") {
+      if (!product?.id) return;
+
+      const tags = Array.isArray(product.tags)
+        ? product.tags
+        : [];
+
+      const skuTag = extractSkuTagFromTags(tags);
+
+      const variants = (
+        product.variants?.edges || []
+      ).map(({ node }) => ({
+        id: node.id,
+        title: node.title || "",
+        sku: node.sku || ""
+      }));
+
+      const chartReference =
+        product.metafield?.reference || null;
+
+      const chartField = (key) =>
+        chartReference?.fields?.find(
+          (field) => field.key === key
+        )?.value || "";
+
+      const item = {
+        id: product.id,
+        title: product.title || "",
+        handle: product.handle || "",
+        status: product.status || "",
+        skuTag,
+        variants,
+        matchedVariantSku,
+        imageUrl:
+          product.featuredMedia?.preview?.image?.url || "",
+        imageAlt:
+          product.featuredMedia?.preview?.image?.altText ||
+          product.title ||
+          "",
+        hasSizeChart: Boolean(chartReference),
+        chartId: chartReference?.id || "",
+        chartHandle: chartReference?.handle || "",
+        chartName:
+          chartField("chart_name") ||
+          chartReference?.displayName ||
+          ""
+      };
+
+      const existing = productMap.get(product.id);
+
+      /*
+       * Prefer a result containing a matched variant SKU.
+       */
+      if (
+        !existing ||
+        (
+          matchedVariantSku &&
+          !existing.matchedVariantSku
+        )
+      ) {
+        productMap.set(product.id, item);
+      }
+    }
+
+    for (const edge of data.products?.edges || []) {
+      addProduct(edge.node);
+    }
+
+    for (
+      const edge of
+      data.productVariants?.edges || []
+    ) {
+      addProduct(
+        edge.node.product,
+        edge.node.sku || ""
+      );
+    }
+
+    const normalizedSearch =
+      safeTerm.toUpperCase();
+
+    const items = Array.from(
+      productMap.values()
+    )
+      .sort((a, b) => {
+        const aSkuMatch =
+          a.skuTag
+            .replace(/^__+/, "")
+            .toUpperCase() === normalizedSearch;
+
+        const bSkuMatch =
+          b.skuTag
+            .replace(/^__+/, "")
+            .toUpperCase() === normalizedSearch;
+
+        if (aSkuMatch !== bSkuMatch) {
+          return aSkuMatch ? -1 : 1;
+        }
+
+        const aVariantMatch =
+          a.matchedVariantSku
+            .toUpperCase() === normalizedSearch;
+
+        const bVariantMatch =
+          b.matchedVariantSku
+            .toUpperCase() === normalizedSearch;
+
+        if (aVariantMatch !== bVariantMatch) {
+          return aVariantMatch ? -1 : 1;
+        }
+
+        return a.title.localeCompare(b.title);
+      })
+      .slice(0, 20);
+
+    return res.json({
+      ok: true,
+      items
+    });
+  } catch (error) {
+    console.error(
+      "Product search error:",
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: String(
+        error.message || error
+      )
+    });
+  }
+});
 app.post("/api/save", async (req, res) => {
   try {
     const skuTag = normalizeSkuTag(req.body.skuTag);
